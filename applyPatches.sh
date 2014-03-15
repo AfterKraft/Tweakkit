@@ -33,4 +33,5 @@ function applyPatch {
     fi
 }
 
+applyPatch Spigot/Bukkit Spigot-API && applyPatch Spigot/CraftBukkit Spigot-Server && \
 applyPatch Spigot-API Tweakkit-API && applyPatch Spigot-Server Tweakkit-Server
