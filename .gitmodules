@@ -1,0 +1,6 @@
+[submodule "Spigot-Server"]
+	path = Spigot-Server
+	url = https://github.com/SpigotMC/Spigot-Server.git
+[submodule "Spigot-API"]
+	path = Spigot-API
+	url = https://github.com/SpigotMC/Spigot-API.git

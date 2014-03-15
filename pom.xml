@@ -1,0 +1,49 @@
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+
+    <groupId>com.afterkraft</groupId>
+    <artifactId>tweakkit-parent</artifactId>
+    <version>dev-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>Tweakkit-Parent</name>
+    <description>Parent project for all tweakkit modules.</description>
+    <url>http://git.afterkraft.com/Tweakkit/tweakkit.git</url>
+
+    <modules>
+        <module>Tweakkit-Server</module>
+        <module>Tweakkit-API</module>
+    </modules>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>afterkraft-repo</id>
+            <url>http://nexus.afterkraft.com/content/groups/public/</url>
+        </repository>
+    </repositories>
+
+    <distributionManagement>
+        <repository>
+            <id>afterkraft-repo</id>
+            <name>AfterKraft Releases</name>
+            <url>http://nexus.afterkraft.com/content/repositories/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>afterkraft-repo</id>
+            <name>AfterKraft Snapshots</name>
+            <url>http://nexus.afterkraft.com/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+</project>

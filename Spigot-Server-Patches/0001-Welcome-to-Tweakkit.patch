@@ -1,0 +1,93 @@
+From c5156203331ce1caf3a85cc90edd0204f40b73a2 Mon Sep 17 00:00:00 2001
+From: Gabriel Harris-Rouquette <gabizou@me.com>
+Date: Tue, 11 Mar 2014 23:57:59 -0700
+Subject: [PATCH] Welcome to Tweakkit!
+
+
+diff --git a/pom.xml b/pom.xml
+index a3e555c..8d98365 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -3,18 +3,18 @@
+   <modelVersion>4.0.0</modelVersion>
+ 
+   <parent>
+-    <groupId>org.spigotmc</groupId>
+-    <artifactId>spigot-parent</artifactId>
++    <groupId>com.afterkraft</groupId>
++    <artifactId>tweakkit-parent</artifactId>
+     <version>dev-SNAPSHOT</version>
+     <relativePath>../pom.xml</relativePath>
+   </parent>
+ 
+-  <groupId>org.spigotmc</groupId>
+-  <artifactId>spigot</artifactId>
++  <groupId>com.afterkraft</groupId>
++  <artifactId>tweakkit</artifactId>
+   <packaging>jar</packaging>
+   <version>1.7.2-R0.4-SNAPSHOT</version>
+-  <name>Spigot</name>
+-  <url>http://www.spigotmc.org</url>
++  <name>Tweakkit</name>
++  <url>http://www.afterkraft.com</url>
+ 
+   <properties>
+     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+@@ -42,8 +42,8 @@
+ 
+   <dependencies>
+     <dependency>
+-      <groupId>org.spigotmc</groupId>
+-      <artifactId>spigot-api</artifactId>
++      <groupId>com.afterkraft</groupId>
++      <artifactId>tweakkit-api</artifactId>
+       <version>${project.version}</version>
+       <type>jar</type>
+       <scope>compile</scope>
+@@ -125,7 +125,7 @@
+         <artifactId>gitdescribe-maven-plugin</artifactId>
+         <version>1.3</version>
+         <configuration>
+-          <outputPrefix>git-Spigot-</outputPrefix>
++          <outputPrefix>git-Tweakkit-</outputPrefix>
+           <outputPostfix></outputPostfix>
+         </configuration>
+         <executions>
+diff --git a/src/main/java/org/bukkit/craftbukkit/util/Versioning.java b/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
+index 9304637..dae4080 100644
+--- a/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
++++ b/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
+@@ -11,7 +11,7 @@ public final class Versioning {
+     public static String getBukkitVersion() {
+         String result = "Unknown-Version";
+ 
+-        InputStream stream = Bukkit.class.getClassLoader().getResourceAsStream("META-INF/maven/org.spigotmc/spigot-api/pom.properties");
++        InputStream stream = Bukkit.class.getClassLoader().getResourceAsStream("META-INF/maven/com.afterkraft/tweakkit-api/pom.properties");
+         Properties properties = new Properties();
+ 
+         if (stream != null) {
+diff --git a/src/main/java/org/spigotmc/Metrics.java b/src/main/java/org/spigotmc/Metrics.java
+index f1690a2..f524903 100644
+--- a/src/main/java/org/spigotmc/Metrics.java
++++ b/src/main/java/org/spigotmc/Metrics.java
+@@ -214,7 +214,7 @@ public class Metrics {
+             }
+ 
+             // Begin hitting the server with glorious data
+-            task = new Timer("Spigot Metrics Thread", true);
++            task = new Timer("Tweakkit Metrics Thread", true);
+ 
+             task.scheduleAtFixedRate(new TimerTask() {
+                 private boolean firstPost = true;
+@@ -344,7 +344,7 @@ public class Metrics {
+      */
+     private void postPlugin(final boolean isPing) throws IOException {
+         // Server software specific section
+-        String pluginName = "Spigot";
++        String pluginName = "Tweakkit";
+         boolean onlineMode = Bukkit.getServer().getOnlineMode(); // TRUE if online mode is enabled
+         String pluginVersion = (Metrics.class.getPackage().getImplementationVersion() != null) ? Metrics.class.getPackage().getImplementationVersion() : "unknown";
+         String serverVersion = Bukkit.getVersion();
+-- 
+1.8.5.2 (Apple Git-48)
+
