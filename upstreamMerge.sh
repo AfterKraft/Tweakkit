@@ -6,5 +6,4 @@ function update {
     cd ../
     git add $1
 }
-update Spigot-API
-update Spigot-Server
+update Spigot
