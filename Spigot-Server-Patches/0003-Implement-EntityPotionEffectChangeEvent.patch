@@ -1,0 +1,507 @@
+From 3f43f8f8a8a7c7a0ab55b3d9d3b0d0f6ec586822 Mon Sep 17 00:00:00 2001
+From: Gabriel Harris-Rouquette <gabizou@me.com>
+Date: Fri, 14 Mar 2014 21:38:51 -0700
+Subject: [PATCH] Implement EntityPotionEffectChangeEvent
+
+
+diff --git a/src/main/java/net/minecraft/server/EnchantmentWeaponDamage.java b/src/main/java/net/minecraft/server/EnchantmentWeaponDamage.java
+index 2a8aa5b..5f5841b 100644
+--- a/src/main/java/net/minecraft/server/EnchantmentWeaponDamage.java
++++ b/src/main/java/net/minecraft/server/EnchantmentWeaponDamage.java
+@@ -48,7 +48,8 @@ public class EnchantmentWeaponDamage extends Enchantment {
+             if (this.a == 2 && entityliving1.getMonsterType() == EnumMonsterType.ARTHROPOD) {
+                 int j = 20 + entityliving.aI().nextInt(10 * i);
+ 
+-                entityliving1.addEffect(new MobEffect(MobEffectList.SLOWER_MOVEMENT.id, j, 3));
++                // Tweakkit - Added 'EntityPotionEffectChangeEvent.Cause.MOB'
++                entityliving1.addEffect(new MobEffect(MobEffectList.SLOWER_MOVEMENT.id, j, 3), org.bukkit.event.entity.EntityPotionEffectChangeEvent.Cause.MOB);
+             }
+         }
+     }
+diff --git a/src/main/java/net/minecraft/server/EntityCaveSpider.java b/src/main/java/net/minecraft/server/EntityCaveSpider.java
+index 4c9cee6..d6592fd 100644
+--- a/src/main/java/net/minecraft/server/EntityCaveSpider.java
++++ b/src/main/java/net/minecraft/server/EntityCaveSpider.java
+@@ -24,7 +24,8 @@ public class EntityCaveSpider extends EntitySpider {
+                 }
+ 
+                 if (b0 > 0) {
+-                    ((EntityLiving) entity).addEffect(new MobEffect(MobEffectList.POISON.id, b0 * 20, 0));
++                    // Tweakkit - Added 'EntityPotionEffectChangeEvent.Cause.MOB'
++                    ((EntityLiving) entity).addEffect(new MobEffect(MobEffectList.POISON.id, b0 * 20, 0), org.bukkit.event.entity.EntityPotionEffectChangeEvent.Cause.MOB);
+                 }
+             }
+ 
+diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
+index ab28bd3..23bffa5 100644
+--- a/src/main/java/net/minecraft/server/EntityLiving.java
++++ b/src/main/java/net/minecraft/server/EntityLiving.java
+@@ -8,9 +8,12 @@ import java.util.Random;
+ import java.util.UUID;
+ 
+ // CraftBukkit start
++import org.apache.commons.lang.Validate; // Tweakkit
+ import org.bukkit.craftbukkit.event.CraftEventFactory;
+ import org.bukkit.event.entity.EntityDamageEvent;
++import org.bukkit.event.entity.EntityPotionEffectChangeEvent; // Tweakkit
+ import org.bukkit.event.entity.EntityRegainHealthEvent;
++import org.bukkit.potion.PotionEffect; // Tweakkit
+ // CraftBukkit end
+ 
+ public abstract class EntityLiving extends Entity {
+@@ -450,6 +453,8 @@ public abstract class EntityLiving extends Entity {
+             if (!mobeffect.tick(this)) {
+                 if (!this.world.isStatic) {
+                     iterator.remove();
++                    // Tweakkit
++                    CraftEventFactory.callEntityPotionEffectChangeEvent(this, mobeffect, EntityPotionEffectChangeEvent.Cause.EXPIRED, world, locX, locY, locZ);
+                     this.b(mobeffect);
+                 }
+             } else if (mobeffect.getDuration() % 600 == 0) {
+@@ -511,6 +516,8 @@ public abstract class EntityLiving extends Entity {
+ 
+             if (!this.world.isStatic) {
+                 iterator.remove();
++                // Tweakkit
++                CraftEventFactory.callEntityPotionEffectChangeEvent(this, mobeffect, EntityPotionEffectChangeEvent.Cause.TREATED, world, locX, locY, locZ);
+                 this.b(mobeffect);
+             }
+         }
+@@ -535,6 +542,29 @@ public abstract class EntityLiving extends Entity {
+     }
+ 
+     public void addEffect(MobEffect mobeffect) {
++        addEffect(mobeffect, EntityPotionEffectChangeEvent.Cause.PLUGIN_ADDED); // Tweakkit - Only plugins are calling this
++        /* Tweakkit start - add mob effect below, not here
++        if (this.d(mobeffect)) {
++            if (this.effects.containsKey(Integer.valueOf(mobeffect.getEffectId()))) {
++                ((MobEffect) this.effects.get(Integer.valueOf(mobeffect.getEffectId()))).a(mobeffect);
++                this.a((MobEffect) this.effects.get(Integer.valueOf(mobeffect.getEffectId())), true);
++            } else {
++                this.effects.put(Integer.valueOf(mobeffect.getEffectId()), mobeffect);
++                this.a(mobeffect);
++            }
++        }
++        // Tweakkit end */
++    }
++
++    // Tweakkit start - Added Cause for addEffect()
++    public void addEffect(MobEffect mobeffect, EntityPotionEffectChangeEvent.Cause cause) {
++        EntityPotionEffectChangeEvent event = CraftEventFactory.callEntityPotionEffectChangeEvent(this, mobeffect, cause, this.world, this.locX, this.locY, this.locZ);
++        if (event.isCancelled())
++            return; //
++        PotionEffect bukkitEffect = event.getEffect();
++        // Update the MobEffect to reflect what Plugins do with it
++        mobeffect = new MobEffect(bukkitEffect.getType().getId(),bukkitEffect.getDuration(),bukkitEffect.getAmplifier(),event.isAmbient());
++        // Tweakkit end - handle how Minecraft normally handles adding Effects
+         if (this.d(mobeffect)) {
+             if (this.effects.containsKey(Integer.valueOf(mobeffect.getEffectId()))) {
+                 ((MobEffect) this.effects.get(Integer.valueOf(mobeffect.getEffectId()))).a(mobeffect);
+@@ -563,12 +593,29 @@ public abstract class EntityLiving extends Entity {
+     }
+ 
+     public void m(int i) {
++        m(i,EntityPotionEffectChangeEvent.Cause.PLUGIN_REMOVED); // Tweakkit - Only Plugins can call this
++        /* Tweakkit - remove mob effect below, not here
+         MobEffect mobeffect = (MobEffect) this.effects.remove(Integer.valueOf(i));
+ 
+         if (mobeffect != null) {
+             this.b(mobeffect);
+         }
++        // Tweakkit end */
++    }
++
++    // Tweakkit start - handle remove effect
++    public void m(int i, EntityPotionEffectChangeEvent.Cause cause) {
++        MobEffect mobeffect = (MobEffect) this.effects.get(Integer.valueOf(i));
++        Validate.notNull(mobeffect);
++        EntityPotionEffectChangeEvent event = CraftEventFactory.callEntityPotionEffectChangeEvent(this, mobeffect, cause, world, locX, locY, locZ);
++        if (event.isCancelled())
++            return; // Don't bother
++        PotionEffect bukkitEffect = event.getEffect();
++        mobeffect = new MobEffect(bukkitEffect.getType().getId(),bukkitEffect.getDuration(),bukkitEffect.getAmplifier(),event.isAmbient());
++        this.b(mobeffect);
++
+     }
++    // Tweakkit end
+ 
+     protected void a(MobEffect mobeffect) {
+         this.updateEffects = true;
+diff --git a/src/main/java/net/minecraft/server/EntityPotion.java b/src/main/java/net/minecraft/server/EntityPotion.java
+index 7287335..cdc7d9e 100644
+--- a/src/main/java/net/minecraft/server/EntityPotion.java
++++ b/src/main/java/net/minecraft/server/EntityPotion.java
+@@ -121,7 +121,8 @@ public class EntityPotion extends EntityProjectile {
+                                     int j = (int) (d1 * (double) mobeffect.getDuration() + 0.5D);
+ 
+                                     if (j > 20) {
+-                                        entityliving.addEffect(new MobEffect(i, j, mobeffect.getAmplifier()));
++                                        // Tweakkit - Added 'EntityPotionEffectChangeEvent.Cause.POTION'
++                                        entityliving.addEffect(new MobEffect(i, j, mobeffect.getAmplifier()), org.bukkit.event.entity.EntityPotionEffectChangeEvent.Cause.POTION);
+                                     }
+                                 }
+                             }
+diff --git a/src/main/java/net/minecraft/server/EntitySkeleton.java b/src/main/java/net/minecraft/server/EntitySkeleton.java
+index da5fd8f..7ab38bc 100644
+--- a/src/main/java/net/minecraft/server/EntitySkeleton.java
++++ b/src/main/java/net/minecraft/server/EntitySkeleton.java
+@@ -57,7 +57,8 @@ public class EntitySkeleton extends EntityMonster implements IRangedEntity {
+     public boolean m(Entity entity) {
+         if (super.m(entity)) {
+             if (this.getSkeletonType() == 1 && entity instanceof EntityLiving) {
+-                ((EntityLiving) entity).addEffect(new MobEffect(MobEffectList.WITHER.id, 200));
++                // Tweakkit - Added 'EntityPotionEffectChangeEvent.Cause.MOB'
++                ((EntityLiving) entity).addEffect(new MobEffect(MobEffectList.WITHER.id, 200), org.bukkit.event.entity.EntityPotionEffectChangeEvent.Cause.MOB);
+             }
+ 
+             return true;
+diff --git a/src/main/java/net/minecraft/server/EntitySpider.java b/src/main/java/net/minecraft/server/EntitySpider.java
+index e93d3f7..0943429 100644
+--- a/src/main/java/net/minecraft/server/EntitySpider.java
++++ b/src/main/java/net/minecraft/server/EntitySpider.java
+@@ -171,7 +171,8 @@ public class EntitySpider extends EntityMonster {
+             int i = ((GroupDataSpider) object).a;
+ 
+             if (i > 0 && MobEffectList.byId[i] != null) {
+-                this.addEffect(new MobEffect(i, Integer.MAX_VALUE));
++                // Tweakkit - Added 'EntityPotionEffectChangeEvent.Cause.MOB'
++                this.addEffect(new MobEffect(i, Integer.MAX_VALUE), org.bukkit.event.entity.EntityPotionEffectChangeEvent.Cause.MOB);
+             }
+         }
+ 
+diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
+index 01fe737..ad28c41 100644
+--- a/src/main/java/net/minecraft/server/EntityVillager.java
++++ b/src/main/java/net/minecraft/server/EntityVillager.java
+@@ -101,7 +101,8 @@ public class EntityVillager extends EntityAgeable implements IMerchant, NPC {
+                     }
+                 }
+ 
+-                this.addEffect(new MobEffect(MobEffectList.REGENERATION.id, 200, 0));
++                // Tweakkit - Added 'EntityPotionEffectChangeEvent.Cause.MOB'
++                this.addEffect(new MobEffect(MobEffectList.REGENERATION.id, 200, 0), org.bukkit.event.entity.EntityPotionEffectChangeEvent.Cause.MOB);
+             }
+         }
+ 
+diff --git a/src/main/java/net/minecraft/server/EntityWitch.java b/src/main/java/net/minecraft/server/EntityWitch.java
+index 99a8941..860d7de 100644
+--- a/src/main/java/net/minecraft/server/EntityWitch.java
++++ b/src/main/java/net/minecraft/server/EntityWitch.java
+@@ -74,7 +74,8 @@ public class EntityWitch extends EntityMonster implements IRangedEntity {
+                             while (iterator.hasNext()) {
+                                 MobEffect mobeffect = (MobEffect) iterator.next();
+ 
+-                                this.addEffect(new MobEffect(mobeffect));
++                                // Tweakkit - Added 'EntityPotionEffectChangeEvent.Cause.MOB'
++                                this.addEffect(new MobEffect(mobeffect), org.bukkit.event.entity.EntityPotionEffectChangeEvent.Cause.MOB);
+                             }
+                         }
+                     }
+diff --git a/src/main/java/net/minecraft/server/EntityWitherSkull.java b/src/main/java/net/minecraft/server/EntityWitherSkull.java
+index 2d428f9..680bb9f 100644
+--- a/src/main/java/net/minecraft/server/EntityWitherSkull.java
++++ b/src/main/java/net/minecraft/server/EntityWitherSkull.java
+@@ -53,7 +53,8 @@ public class EntityWitherSkull extends EntityFireball {
+                     }
+ 
+                     if (b0 > 0) {
+-                        ((EntityLiving) movingobjectposition.entity).addEffect(new MobEffect(MobEffectList.WITHER.id, 20 * b0, 1));
++                        // Tweakkit - Added 'EntityPotionEffectChangeEvent.Cause.MOB'
++                        ((EntityLiving) movingobjectposition.entity).addEffect(new MobEffect(MobEffectList.WITHER.id, 20 * b0, 1), org.bukkit.event.entity.EntityPotionEffectChangeEvent.Cause.MOB);
+                     }
+                 }
+             }
+diff --git a/src/main/java/net/minecraft/server/EntityZombie.java b/src/main/java/net/minecraft/server/EntityZombie.java
+index 5c8b0a8..5ccecf1 100644
+--- a/src/main/java/net/minecraft/server/EntityZombie.java
++++ b/src/main/java/net/minecraft/server/EntityZombie.java
+@@ -3,10 +3,11 @@ package net.minecraft.server;
+ import java.util.Calendar;
+ import java.util.UUID;
+ 
+-//CraftBukkit start
+-import org.bukkit.craftbukkit.entity.CraftLivingEntity;
+ import org.bukkit.event.entity.EntityCombustByEntityEvent;
+ import org.bukkit.event.entity.EntityCombustEvent;
++import org.bukkit.event.entity.EntityPotionEffectChangeEvent;
++
++//CraftBukkit start
+ //CraftBukkit end
+ 
+ public class EntityZombie extends EntityMonster {
+@@ -414,8 +415,10 @@ public class EntityZombie extends EntityMonster {
+     protected void a(int i) {
+         this.bt = i;
+         this.getDataWatcher().watch(14, Byte.valueOf((byte) 1));
+-        this.m(MobEffectList.WEAKNESS.id);
+-        this.addEffect(new MobEffect(MobEffectList.INCREASE_DAMAGE.id, i, Math.min(this.world.difficulty.a() - 1, 0)));
++        // Tweakkit start - Added 'EntityPotionEffectChangeEvent.Cause.MOB'
++        this.m(MobEffectList.WEAKNESS.id, EntityPotionEffectChangeEvent.Cause.MOB);
++        this.addEffect(new MobEffect(MobEffectList.INCREASE_DAMAGE.id, i, Math.min(this.world.difficulty.a() - 1, 0)), EntityPotionEffectChangeEvent.Cause.MOB);
++        // Tweakkit end
+         this.world.broadcastEntityEffect(this, (byte) 16);
+     }
+ 
+@@ -439,7 +442,8 @@ public class EntityZombie extends EntityMonster {
+ 
+         this.world.kill(this);
+         this.world.addEntity(entityvillager);
+-        entityvillager.addEffect(new MobEffect(MobEffectList.CONFUSION.id, 200, 0));
++        // Tweakkit - add 'EntityPotionEffectChangeEvent.Cause.MOB'
++        entityvillager.addEffect(new MobEffect(MobEffectList.CONFUSION.id, 200, 0),EntityPotionEffectChangeEvent.Cause.MOB);
+         this.world.a((EntityHuman) null, 1017, (int) this.locX, (int) this.locY, (int) this.locZ, 0);
+     }
+ 
+diff --git a/src/main/java/net/minecraft/server/ItemFish.java b/src/main/java/net/minecraft/server/ItemFish.java
+index 28aa060..6d58786 100644
+--- a/src/main/java/net/minecraft/server/ItemFish.java
++++ b/src/main/java/net/minecraft/server/ItemFish.java
+@@ -1,5 +1,7 @@
+ package net.minecraft.server;
+ 
++import org.bukkit.event.entity.EntityPotionEffectChangeEvent; // Tweakkit
++
+ public class ItemFish extends ItemFood {
+ 
+     private final boolean b;
+@@ -29,12 +31,14 @@ public class ItemFish extends ItemFood {
+         EnumFish enumfish = EnumFish.a(itemstack);
+ 
+         if (enumfish == EnumFish.PUFFERFISH) {
+-            entityhuman.addEffect(new MobEffect(MobEffectList.POISON.id, 1200, 3));
+-            entityhuman.addEffect(new MobEffect(MobEffectList.HUNGER.id, 300, 2));
+-            entityhuman.addEffect(new MobEffect(MobEffectList.CONFUSION.id, 300, 1));
++            // Tweakkit start - Added 'EntityPotionEffectChangeEvent.Cause.FOOD'
++            entityhuman.addEffect(new MobEffect(MobEffectList.POISON.id, 1200, 3), EntityPotionEffectChangeEvent.Cause.FOOD);
++            entityhuman.addEffect(new MobEffect(MobEffectList.HUNGER.id, 300, 2), EntityPotionEffectChangeEvent.Cause.FOOD);
++            entityhuman.addEffect(new MobEffect(MobEffectList.CONFUSION.id, 300, 1), EntityPotionEffectChangeEvent.Cause.FOOD);
++            // Tweakkit end
+         }
+ 
+-        super.c(itemstack, world, entityhuman);
++        //super.c(itemstack, world, entityhuman); Tweakkit - Causes the client to add effects even if events are cancelled
+     }
+ 
+     public String a(ItemStack itemstack) {
+diff --git a/src/main/java/net/minecraft/server/ItemFood.java b/src/main/java/net/minecraft/server/ItemFood.java
+index b669d61..fd2e61f 100644
+--- a/src/main/java/net/minecraft/server/ItemFood.java
++++ b/src/main/java/net/minecraft/server/ItemFood.java
+@@ -34,7 +34,8 @@ public class ItemFood extends Item {
+ 
+     protected void c(ItemStack itemstack, World world, EntityHuman entityhuman) {
+         if (!world.isStatic && this.n > 0 && world.random.nextFloat() < this.q) {
+-            entityhuman.addEffect(new MobEffect(this.n, this.o * 20, this.p));
++            // Tweakkit - 'Added EntityPotionEffectChangeEvent.Cause.FOOD'
++            entityhuman.addEffect(new MobEffect(this.n, this.o * 20, this.p), org.bukkit.event.entity.EntityPotionEffectChangeEvent.Cause.FOOD);
+         }
+     }
+ 
+diff --git a/src/main/java/net/minecraft/server/ItemGoldenApple.java b/src/main/java/net/minecraft/server/ItemGoldenApple.java
+index 6bab734..787654a 100644
+--- a/src/main/java/net/minecraft/server/ItemGoldenApple.java
++++ b/src/main/java/net/minecraft/server/ItemGoldenApple.java
+@@ -1,5 +1,7 @@
+ package net.minecraft.server;
+ 
++import org.bukkit.event.entity.EntityPotionEffectChangeEvent; // Tweakkit
++
+ public class ItemGoldenApple extends ItemFood {
+ 
+     public ItemGoldenApple(int i, float f, boolean flag) {
+@@ -13,14 +15,17 @@ public class ItemGoldenApple extends ItemFood {
+ 
+     protected void c(ItemStack itemstack, World world, EntityHuman entityhuman) {
+         if (!world.isStatic) {
+-            entityhuman.addEffect(new MobEffect(MobEffectList.ABSORPTION.id, 2400, 0));
++            // Tweakkit - Added 'EntityPotionEffectChangeEvent.Cause.GOLDEN_APPLE'
++            entityhuman.addEffect(new MobEffect(MobEffectList.ABSORPTION.id, 2400, 0), EntityPotionEffectChangeEvent.Cause.GOLDEN_APPLE);
+         }
+ 
+         if (itemstack.getData() > 0) {
+             if (!world.isStatic) {
+-                entityhuman.addEffect(new MobEffect(MobEffectList.REGENERATION.id, 600, 4));
+-                entityhuman.addEffect(new MobEffect(MobEffectList.RESISTANCE.id, 6000, 0));
+-                entityhuman.addEffect(new MobEffect(MobEffectList.FIRE_RESISTANCE.id, 6000, 0));
++                // Tweakkit start - Added 'EntityPotionEffectChangeEvent.Cause.ENCHANTED_GOLDEN_APPLE'
++                entityhuman.addEffect(new MobEffect(MobEffectList.REGENERATION.id, 600, 4), EntityPotionEffectChangeEvent.Cause.ENCHANTED_GOLDEN_APPLE);
++                entityhuman.addEffect(new MobEffect(MobEffectList.RESISTANCE.id, 6000, 0), EntityPotionEffectChangeEvent.Cause.ENCHANTED_GOLDEN_APPLE);
++                entityhuman.addEffect(new MobEffect(MobEffectList.FIRE_RESISTANCE.id, 6000, 0), EntityPotionEffectChangeEvent.Cause.ENCHANTED_GOLDEN_APPLE);
++                // Tweakkit end
+             }
+         } else {
+             super.c(itemstack, world, entityhuman);
+diff --git a/src/main/java/net/minecraft/server/ItemPotion.java b/src/main/java/net/minecraft/server/ItemPotion.java
+index 120bf1c..be53061 100644
+--- a/src/main/java/net/minecraft/server/ItemPotion.java
++++ b/src/main/java/net/minecraft/server/ItemPotion.java
+@@ -71,7 +71,8 @@ public class ItemPotion extends Item {
+                 while (iterator.hasNext()) {
+                     MobEffect mobeffect = (MobEffect) iterator.next();
+ 
+-                    entityhuman.addEffect(new MobEffect(mobeffect));
++                    // Tweakkit - Added 'EntityPotionEffectChangeEvent.Cause.POTION'
++                    entityhuman.addEffect(new MobEffect(mobeffect), org.bukkit.event.entity.EntityPotionEffectChangeEvent.Cause.POTION);
+                 }
+             }
+         }
+diff --git a/src/main/java/net/minecraft/server/MobEffectList.java b/src/main/java/net/minecraft/server/MobEffectList.java
+index c6effa9..50a4275 100644
+--- a/src/main/java/net/minecraft/server/MobEffectList.java
++++ b/src/main/java/net/minecraft/server/MobEffectList.java
+@@ -9,6 +9,7 @@ import net.minecraft.util.com.google.common.collect.Maps;
+ 
+ // CraftBukkit start
+ import org.bukkit.craftbukkit.event.CraftEventFactory;
++import org.bukkit.event.entity.EntityPotionEffectChangeEvent; // Tweakkit
+ import org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason;
+ // CraftBukkit end
+ 
+@@ -115,9 +116,16 @@ public class MobEffectList {
+         // CraftBukkit end
+         int j;
+ 
+-        if ((this.id != HEAL.id || entityliving1.aR()) && (this.id != HARM.id || !entityliving1.aR())) {
+-            if (this.id == HARM.id && !entityliving1.aR() || this.id == HEAL.id && entityliving1.aR()) {
+-                j = (int) (d0 * (double) (6 << i) + 0.5D);
++        // CraftBukkit start
++        MobEffect effectEvent = new MobEffect(id,0,i); // Need to construct the MobEffect to use in the Event
++        EntityPotionEffectChangeEvent potionEvent = CraftEventFactory.callEntityPotionEffectChangeEvent(entityliving, effectEvent, EntityPotionEffectChangeEvent.Cause.POTION, entityliving1.world, entityliving1.locX, entityliving1.locY, entityliving1.locZ);
++        if (potionEvent.isCancelled()) {
++            return;
++        }
++        if ((potionEvent.getEffect().getType().getId() != HEAL.id || entityliving1.aR()) && (potionEvent.getEffect().getType().getId() != HARM.id || !entityliving1.aR())) {
++            if (potionEvent.getEffect().getType().getId() == HARM.id && !entityliving1.aR() || potionEvent.getEffect().getType().getId() == HEAL.id && entityliving1.aR()) {
++                j = (int) (d0 * (double) (6 << potionEvent.getEffect().getAmplifier()) + 0.5D); // CraftBukkit - Apply the amplifier of the event
++                // CraftBukkit end
+                 if (entityliving == null) {
+                     entityliving1.damageEntity(DamageSource.MAGIC, (float) j);
+                 } else {
+@@ -126,7 +134,8 @@ public class MobEffectList {
+                 }
+             }
+         } else {
+-            j = (int) (d0 * (double) (4 << i) + 0.5D);
++            // Tweakkit - Use potionEvent.getEffect().getAmplifier() instead of default i
++            j = (int) (d0 * (double) (4 << potionEvent.getEffect().getAmplifier()) + 0.5D);
+             entityliving1.heal((float) j, RegainReason.MAGIC); // CraftBukkit
+         }
+     }
+diff --git a/src/main/java/net/minecraft/server/TileEntityBeacon.java b/src/main/java/net/minecraft/server/TileEntityBeacon.java
+index cdbcf86..47f62f4 100644
+--- a/src/main/java/net/minecraft/server/TileEntityBeacon.java
++++ b/src/main/java/net/minecraft/server/TileEntityBeacon.java
+@@ -6,6 +6,7 @@ import java.util.List;
+ // CraftBukkit start
+ import org.bukkit.craftbukkit.entity.CraftHumanEntity;
+ import org.bukkit.entity.HumanEntity;
++import org.bukkit.event.entity.EntityPotionEffectChangeEvent; // Tweakkit
+ // CraftBukkit end
+ 
+ public class TileEntityBeacon extends TileEntity implements IInventory {
+@@ -70,7 +71,8 @@ public class TileEntityBeacon extends TileEntity implements IInventory {
+ 
+             while (iterator.hasNext()) {
+                 entityhuman = (EntityHuman) iterator.next();
+-                entityhuman.addEffect(new MobEffect(this.m, 180, b0, true));
++                // CraftBukkit - Added 'EntityPotionEffectChangeEvent.Cause.BEACON'
++                entityhuman.addEffect(new MobEffect(this.m, 180, b0, true), EntityPotionEffectChangeEvent.Cause.BEACON);
+             }
+ 
+             if (this.l >= 4 && this.m != this.n && this.n > 0) {
+@@ -78,7 +80,8 @@ public class TileEntityBeacon extends TileEntity implements IInventory {
+ 
+                 while (iterator.hasNext()) {
+                     entityhuman = (EntityHuman) iterator.next();
+-                    entityhuman.addEffect(new MobEffect(this.n, 180, 0, true));
++                    // Tweakkit - Added 'EntityPotionEffectChangeEvent.Cause.BEACON'
++                    entityhuman.addEffect(new MobEffect(this.n, 180, 0, true), EntityPotionEffectChangeEvent.Cause.BEACON);
+                 }
+             }
+         }
+diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftLivingEntity.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftLivingEntity.java
+index 9cdb0c1..da1bcc9 100644
+--- a/src/main/java/org/bukkit/craftbukkit/entity/CraftLivingEntity.java
++++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftLivingEntity.java
+@@ -52,6 +52,7 @@ import org.bukkit.entity.Snowball;
+ import org.bukkit.entity.ThrownExpBottle;
+ import org.bukkit.entity.ThrownPotion;
+ import org.bukkit.entity.WitherSkull;
++import org.bukkit.event.entity.EntityPotionEffectChangeEvent; // Tweakkit
+ import org.bukkit.event.player.PlayerTeleportEvent;
+ import org.bukkit.inventory.EntityEquipment;
+ import org.bukkit.inventory.ItemStack;
+@@ -261,10 +262,10 @@ public class CraftLivingEntity extends CraftEntity implements LivingEntity {
+             if (!force) {
+                 return false;
+             }
+-            removePotionEffect(effect.getType());
++            // removePotionEffect(effect.getType()); // Tweakkit - Now completely unecessary since this is updated internally
+         }
+-        getHandle().addEffect(new MobEffect(effect.getType().getId(), effect.getDuration(), effect.getAmplifier(), effect.isAmbient()));
+-        return true;
++        // Tweakkit
++        getHandle().addEffect(new MobEffect(effect.getType().getId(), effect.getDuration(), effect.getAmplifier(), effect.isAmbient()), EntityPotionEffectChangeEvent.Cause.PLUGIN_ADDED);        return true;
+     }
+ 
+     public boolean addPotionEffects(Collection<PotionEffect> effects) {
+@@ -280,7 +281,8 @@ public class CraftLivingEntity extends CraftEntity implements LivingEntity {
+     }
+ 
+     public void removePotionEffect(PotionEffectType type) {
+-        getHandle().m(type.getId()); // Should be removeEffect.
++        // Tweakkit
++        getHandle().m(type.getId(),EntityPotionEffectChangeEvent.Cause.PLUGIN_REMOVED); // Should be removeEffect.
+     }
+ 
+     public Collection<PotionEffect> getActivePotionEffects() {
+diff --git a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
+index 161506a..42ad563 100644
+--- a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
++++ b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
+@@ -23,6 +23,7 @@ import net.minecraft.server.IInventory;
+ import net.minecraft.server.InventoryCrafting;
+ import net.minecraft.server.ItemStack;
+ import net.minecraft.server.Items;
++import net.minecraft.server.MobEffect; // Tweakkit
+ import net.minecraft.server.PacketPlayInCloseWindow;
+ import net.minecraft.server.PacketPlayOutSetSlot;
+ import net.minecraft.server.Slot;
+@@ -30,6 +31,7 @@ import net.minecraft.server.World;
+ import net.minecraft.server.WorldServer;
+ 
+ import org.bukkit.Bukkit;
++import org.bukkit.Location; // Tweakkit
+ import org.bukkit.Material;
+ import org.bukkit.Server;
+ import org.bukkit.Statistic.Type;
+@@ -74,6 +76,8 @@ import org.bukkit.event.player.*;
+ import org.bukkit.event.server.ServerListPingEvent;
+ import org.bukkit.inventory.InventoryView;
+ import org.bukkit.inventory.meta.BookMeta;
++import org.bukkit.potion.PotionEffect; // Tweakkit
++import org.bukkit.potion.PotionEffectType; // Tweakkit
+ 
+ public class CraftEventFactory {
+     public static final DamageSource MELTING = CraftDamageSource.copyOf(DamageSource.BURN);
+@@ -792,4 +796,17 @@ public class CraftEventFactory {
+         entityHuman.world.getServer().getPluginManager().callEvent(event);
+         return (Cancellable) event;
+     }
++
++    public static EntityPotionEffectChangeEvent callEntityPotionEffectChangeEvent(EntityLiving living, MobEffect mobEffect, EntityPotionEffectChangeEvent.Cause cause, World world, double locX, double locY, double locZ){
++        PotionEffect effect = new PotionEffect(PotionEffectType.getById(mobEffect.getEffectId()), mobEffect.getDuration(), mobEffect.getAmplifier());
++        CraftLivingEntity entity = (CraftLivingEntity) living.getBukkitEntity();
++        Location location = new Location(world.getWorld(), locX, locY, locZ);
++        return callEntityPotionEffectChangeEvent(entity, effect, cause, location);
++    }
++
++    public static EntityPotionEffectChangeEvent callEntityPotionEffectChangeEvent(CraftLivingEntity entity, PotionEffect effect, EntityPotionEffectChangeEvent.Cause cause, Location location){
++        EntityPotionEffectChangeEvent event = new EntityPotionEffectChangeEvent(entity, effect, cause, effect.isAmbient(), location);
++        entity.getServer().getPluginManager().callEvent(event);
++        return event;
++    }
+ }
+-- 
+1.8.5.2 (Apple Git-48)
+
