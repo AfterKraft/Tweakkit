@@ -1,4 +1,4 @@
-From 6c933a37a4926ffd8894d5ce2a5eccb67d6bd97d Mon Sep 17 00:00:00 2001
+From 51d3212cffb878b75ae7fbd9aa0ae47f80672792 Mon Sep 17 00:00:00 2001
 From: Gabriel Harris-Rouquette <gabizou@me.com>
 Date: Fri, 14 Mar 2014 20:59:08 -0700
 Subject: [PATCH] Add files for diff visibility
@@ -6,7 +6,7 @@ Subject: [PATCH] Add files for diff visibility
 
 diff --git a/src/main/java/net/minecraft/server/EnchantmentWeaponDamage.java b/src/main/java/net/minecraft/server/EnchantmentWeaponDamage.java
 new file mode 100644
-index 0000000..2a8aa5b
+index 0000000..c1e4143
 --- /dev/null
 +++ b/src/main/java/net/minecraft/server/EnchantmentWeaponDamage.java
 @@ -0,0 +1,55 @@
@@ -37,8 +37,8 @@ index 0000000..2a8aa5b
 +        return 5;
 +    }
 +
-+    public float a(int i, EntityLiving entityliving) {
-+        return this.a == 0 ? (float) i * 1.25F : (this.a == 1 && entityliving.getMonsterType() == EnumMonsterType.UNDEAD ? (float) i * 2.5F : (this.a == 2 && entityliving.getMonsterType() == EnumMonsterType.ARTHROPOD ? (float) i * 2.5F : 0.0F));
++    public float a(int i, EnumMonsterType enummonstertype) {
++        return this.a == 0 ? (float) i * 1.25F : (this.a == 1 && enummonstertype == EnumMonsterType.UNDEAD ? (float) i * 2.5F : (this.a == 2 && enummonstertype == EnumMonsterType.ARTHROPOD ? (float) i * 2.5F : 0.0F));
 +    }
 +
 +    public String a() {
@@ -58,7 +58,7 @@ index 0000000..2a8aa5b
 +            EntityLiving entityliving1 = (EntityLiving) entity;
 +
 +            if (this.a == 2 && entityliving1.getMonsterType() == EnumMonsterType.ARTHROPOD) {
-+                int j = 20 + entityliving.aI().nextInt(10 * i);
++                int j = 20 + entityliving.aH().nextInt(10 * i);
 +
 +                entityliving1.addEffect(new MobEffect(MobEffectList.SLOWER_MOVEMENT.id, j, 3));
 +            }
@@ -68,7 +68,7 @@ index 0000000..2a8aa5b
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/EntityCaveSpider.java b/src/main/java/net/minecraft/server/EntityCaveSpider.java
 new file mode 100644
-index 0000000..4c9cee6
+index 0000000..8fa09b0
 --- /dev/null
 +++ b/src/main/java/net/minecraft/server/EntityCaveSpider.java
 @@ -0,0 +1,40 @@
@@ -81,13 +81,13 @@ index 0000000..4c9cee6
 +        this.a(0.7F, 0.5F);
 +    }
 +
-+    protected void aD() {
-+        super.aD();
++    protected void aC() {
++        super.aC();
 +        this.getAttributeInstance(GenericAttributes.a).setValue(12.0D);
 +    }
 +
-+    public boolean m(Entity entity) {
-+        if (super.m(entity)) {
++    public boolean n(Entity entity) {
++        if (super.n(entity)) {
 +            if (entity instanceof EntityLiving) {
 +                byte b0 = 0;
 +
@@ -115,7 +115,7 @@ index 0000000..4c9cee6
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
 new file mode 100644
-index 0000000..01fe737
+index 0000000..5f1c21f
 --- /dev/null
 +++ b/src/main/java/net/minecraft/server/EntityVillager.java
 @@ -0,0 +1,551 @@
@@ -171,22 +171,22 @@ index 0000000..01fe737
 +        this.goalSelector.a(10, new PathfinderGoalLookAtPlayer(this, EntityInsentient.class, 8.0F));
 +    }
 +
-+    protected void aD() {
++    protected void aC() {
 +        super.aD();
 +        this.getAttributeInstance(GenericAttributes.d).setValue(0.5D);
 +    }
 +
-+    public boolean bk() {
++    public boolean bj() {
 +        return true;
 +    }
 +
-+    protected void bp() {
++    protected void bo() {
 +        if (--this.profession <= 0) {
 +            this.world.villages.a(MathHelper.floor(this.locX), MathHelper.floor(this.locY), MathHelper.floor(this.locZ));
 +            this.profession = 70 + this.random.nextInt(50);
 +            this.village = this.world.villages.getClosestVillage(MathHelper.floor(this.locX), MathHelper.floor(this.locY), MathHelper.floor(this.locZ), 32);
 +            if (this.village == null) {
-+                this.bV();
++                this.bX();
 +            } else {
 +                ChunkCoordinates chunkcoordinates = this.village.getCenter();
 +
@@ -198,7 +198,7 @@ index 0000000..01fe737
 +            }
 +        }
 +
-+        if (!this.ca() && this.bv > 0) {
++        if (!this.cc() && this.bv > 0) {
 +            --this.bv;
 +            if (this.bv <= 0) {
 +                if (this.bw) {
@@ -226,14 +226,14 @@ index 0000000..01fe737
 +            }
 +        }
 +
-+        super.bp();
++        super.bo();
 +    }
 +
 +    public boolean a(EntityHuman entityhuman) {
 +        ItemStack itemstack = entityhuman.inventory.getItemInHand();
 +        boolean flag = itemstack != null && itemstack.getItem() == Items.MONSTER_EGG;
 +
-+        if (!flag && this.isAlive() && !this.ca() && !this.isBaby()) {
++        if (!flag && this.isAlive() && !this.cc() && !this.isBaby()) {
 +            if (!this.world.isStatic) {
 +                this.a_(entityhuman);
 +                entityhuman.openTrade(this, this.getCustomName());
@@ -275,14 +275,14 @@ index 0000000..01fe737
 +    }
 +
 +    protected String t() {
-+        return this.ca() ? "mob.villager.haggle" : "mob.villager.idle";
++        return this.cc() ? "mob.villager.haggle" : "mob.villager.idle";
 +    }
 +
-+    protected String aT() {
++    protected String aS() {
 +        return "mob.villager.hit";
 +    }
 +
-+    protected String aU() {
++    protected String aT() {
 +        return "mob.villager.death";
 +    }
 +
@@ -294,7 +294,7 @@ index 0000000..01fe737
 +        return this.datawatcher.getInt(16);
 +    }
 +
-+    public boolean bY() {
++    public boolean ca() {
 +        return this.br;
 +    }
 +
@@ -306,7 +306,7 @@ index 0000000..01fe737
 +        this.bs = flag;
 +    }
 +
-+    public boolean bZ() {
++    public boolean cb() {
 +        return this.bs;
 +    }
 +
@@ -359,14 +359,14 @@ index 0000000..01fe737
 +        return this.tradingPlayer;
 +    }
 +
-+    public boolean ca() {
++    public boolean cc() {
 +        return this.tradingPlayer != null;
 +    }
 +
 +    public void a(MerchantRecipe merchantrecipe) {
 +        merchantrecipe.f();
 +        this.a_ = -this.q();
-+        this.makeSound("mob.villager.yes", this.bf(), this.bg());
++        this.makeSound("mob.villager.yes", this.be(), this.bf());
 +        if (merchantrecipe.a((MerchantRecipe) this.bu.get(this.bu.size() - 1))) {
 +            this.bv = 40;
 +            this.bw = true;
@@ -386,9 +386,9 @@ index 0000000..01fe737
 +        if (!this.world.isStatic && this.a_ > -this.q() + 20) {
 +            this.a_ = -this.q();
 +            if (itemstack != null) {
-+                this.makeSound("mob.villager.yes", this.bf(), this.bg());
++                this.makeSound("mob.villager.yes", this.be(), this.bf());
 +            } else {
-+                this.makeSound("mob.villager.no", this.bf(), this.bg());
++                this.makeSound("mob.villager.no", this.be(), this.bf());
 +            }
 +        }
 +    }
@@ -584,7 +584,7 @@ index 0000000..01fe737
 +        return groupdataentity;
 +    }
 +
-+    public void cb() {
++    public void cd() {
 +        this.bz = true;
 +    }
 +
@@ -595,7 +595,7 @@ index 0000000..01fe737
 +        return entityvillager;
 +    }
 +
-+    public boolean bK() {
++    public boolean bM() {
 +        return false;
 +    }
 +
