@@ -113,7 +113,7 @@ index 7ec500e..8ea8a5e 100644
 +
 +    // Tweakkit start - handle remove effect
 +    public void removeEffect(int i, EntityPotionEffectChangeEvent.Cause cause) {
-+        MobEffect mobeffect = (MobEffect) this.effects.get(Integer.valueOf(i));
++        MobEffect mobeffect = (MobEffect) this.effects.remove(Integer.valueOf(i));
 +        Validate.notNull(mobeffect);
 +        EntityPotionEffectChangeEvent event = CraftEventFactory.callEntityPotionEffectChangeEvent(this, mobeffect, cause, world, locX, locY, locZ);
 +        if (event.isCancelled())
