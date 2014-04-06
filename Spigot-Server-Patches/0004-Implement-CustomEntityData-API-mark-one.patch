@@ -1,0 +1,221 @@
+From 167a64148cdb151e9c4994a77aa3673a36b623e4 Mon Sep 17 00:00:00 2001
+From: Gabriel Harris-Rouquette <gabizou@me.com>
+Date: Sun, 6 Apr 2014 04:35:02 -0700
+Subject: [PATCH] Implement CustomEntityData API mark one.
+
+
+diff --git a/src/main/java/com/afterkraft/configuration/CustomDataNBTFactory.java b/src/main/java/com/afterkraft/configuration/CustomDataNBTFactory.java
+new file mode 100644
+index 0000000..c94f1cc
+--- /dev/null
++++ b/src/main/java/com/afterkraft/configuration/CustomDataNBTFactory.java
+@@ -0,0 +1,139 @@
++package com.afterkraft.configuration;
++
++import java.util.Map;
++import java.util.Set;
++
++import net.minecraft.server.NBTBase;
++import net.minecraft.server.NBTTagByte;
++import net.minecraft.server.NBTTagByteArray;
++import net.minecraft.server.NBTTagCompound;
++import net.minecraft.server.NBTTagDouble;
++import net.minecraft.server.NBTTagFloat;
++import net.minecraft.server.NBTTagInt;
++import net.minecraft.server.NBTTagIntArray;
++import net.minecraft.server.NBTTagList;
++import net.minecraft.server.NBTTagLong;
++import net.minecraft.server.NBTTagShort;
++import net.minecraft.server.NBTTagString;
++
++/**
++ * Author: gabizou
++ */
++public class CustomDataNBTFactory {
++
++    public static NBTTagCompound fromCustomToNBT(final CustomDataCompound compound) {
++        if (compound == null || CustomDataCompound.getCustomDataCompoundMap(compound).isEmpty()) {
++            return null;
++        }
++        NBTTagCompound data = new NBTTagCompound();
++        final Map<String, CustomDataBase> customMap = CustomDataCompound.getCustomDataCompoundMap(compound);
++        for (Map.Entry<String, CustomDataBase> entry : customMap.entrySet()) {
++             data.set(entry.getKey(), fromCustomToNBT(entry.getKey(), entry.getValue()));
++        }
++
++        return data;
++    }
++
++    @SuppressWarnings("unchecked")
++    public static CustomDataCompound fromNBTtoCustom(final NBTTagCompound compound) {
++        if (compound == null || compound.c().isEmpty()) {
++            return null;
++        }
++        CustomDataCompound data = new CustomDataCompound();
++        final Set<String> keys = compound.c();
++        for (String key : keys) {
++            data.set(key, fromNBTtoCustom(key, compound.get(key)));
++        }
++        return data;
++    }
++
++    @SuppressWarnings("unchecked")
++    private static CustomDataBase fromNBTtoCustom(final String key, final NBTBase base) {
++        if (base instanceof NBTTagByte) {
++            return new CustomDataByte(((NBTTagByte) base).f());
++        } else if (base instanceof NBTTagShort) {
++            return new CustomDataShort(((NBTTagShort) base).e());
++        } else if (base instanceof NBTTagInt) {
++            return new CustomDataInt(((NBTTagInt) base).d());
++        } else if (base instanceof NBTTagLong) {
++            return new CustomDataLong(((NBTTagLong) base).c());
++        } else if (base instanceof NBTTagFloat) {
++            return new CustomDataFloat(((NBTTagFloat) base).h());
++        } else if (base instanceof NBTTagDouble) {
++            return new CustomDataDouble(((NBTTagDouble) base).g());
++        } else if (base instanceof NBTTagString) {
++            return new CustomDataString(((NBTTagString) base).a_());
++        } else if (base instanceof NBTTagByteArray) {
++            return new CustomDataByteArray(((NBTTagByteArray) base).c());
++        } else if (base instanceof NBTTagIntArray) {
++            return new CustomDataIntArray(((NBTTagIntArray) base).c());
++        } else if (base instanceof NBTTagList) {
++            CustomDataList customList = new CustomDataList();
++            for (int i = 0; i < ((NBTTagList) base).size(); i++) {
++                customList.add(fromNBTtoCustom(((NBTTagList) base).get(i)));
++            }
++            return customList;
++        } else if (base instanceof NBTTagCompound) {
++            CustomDataCompound compound = new CustomDataCompound();
++            final Set<String> keys = ((NBTTagCompound) base).c();
++            for (String nbtKey : keys) {
++                compound.set(key, fromNBTtoCustom(nbtKey, ((NBTTagCompound) base).get(nbtKey)));
++            }
++            return compound;
++        } else {
++            return null;
++        }
++    }
++
++    private static NBTTagCompound fromCustomToNBT(final String key, final CustomDataBase customData) {
++        NBTTagCompound data = new NBTTagCompound();
++        switch (customData.getDataType()) {
++            case END:
++                return data;
++            case BYTE:
++                data.setByte(key, ((CustomDataNumber) customData).asByte());
++                return data;
++            case SHORT:
++                data.setShort(key, ((CustomDataNumber) customData).asShort());
++                return data;
++            case INT:
++                data.setInt(key, ((CustomDataNumber) customData).asInt());
++                return data;
++            case LONG:
++                data.setLong(key, ((CustomDataNumber) customData).asLong());
++                return data;
++            case FLOAT:
++                data.setFloat(key, ((CustomDataNumber) customData).asFloat());
++                return data;
++            case DOUBLE:
++                data.setDouble(key, ((CustomDataNumber) customData).asDouble());
++                return data;
++            case BYTE_ARRAY:
++                data.setByteArray(key, ((CustomDataByteArray) customData).getArray());
++                return data;
++            case STRING:
++                data.setString(key, customData.asString());
++                return data;
++            case LIST:
++                NBTTagList list = new NBTTagList();
++                for (int i = 0; i < ((CustomDataList) customData).size(); i++) {
++                    list.add(fromCustomToNBT(((CustomDataList) customData).get(i)));
++                }
++                data.set(key, list);
++                return data;
++            case COMPOUND:
++                NBTTagCompound compound = new NBTTagCompound();
++                final Map<String, CustomDataBase> customMap = CustomDataCompound.getCustomDataCompoundMap((CustomDataCompound) customData);
++                for (Map.Entry<String, CustomDataBase> entry : customMap.entrySet()) {
++                    compound.set(entry.getKey(), fromCustomToNBT(entry.getKey(), entry.getValue()));
++                }
++                data.set(key, compound);
++                return data;
++            case INT_ARRAY:
++                data.setIntArray(key, ((CustomDataIntArray) customData).getArray());
++                return data;
++            default:
++                return null;
++        }
++    }
++}
+diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
+index 37a9cae..5dff6ff 100644
+--- a/src/main/java/net/minecraft/server/Entity.java
++++ b/src/main/java/net/minecraft/server/Entity.java
+@@ -1144,6 +1144,8 @@ public abstract class Entity {
+                     nbttagcompound.set("Riding", nbttagcompound1);
+                 }
+             }
++            // Tweakkit - Set custom data before proceeding
++            this.getBukkitEntity().saveCustomData(nbttagcompound);
+         } catch (Throwable throwable) {
+             CrashReport crashreport = CrashReport.a(throwable, "Saving entity NBT");
+             CrashReportSystemDetails crashreportsystemdetails = crashreport.a("Entity being saved");
+@@ -1252,6 +1254,8 @@ public abstract class Entity {
+                 this.spawnIn(bworld == null ? null : ((CraftWorld) bworld).getHandle());
+             }
+             // CraftBukkit end
++            // Tweakkit - Set custom data before proceeding
++            this.getBukkitEntity().readCustomdata(nbttagcompound);
+         } catch (Throwable throwable) {
+             CrashReport crashreport = CrashReport.a(throwable, "Loading entity NBT");
+             CrashReportSystemDetails crashreportsystemdetails = crashreport.a("Entity being loaded");
+diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java
+index 96d763b..a130152 100644
+--- a/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java
++++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java
+@@ -17,6 +17,11 @@ import org.bukkit.metadata.MetadataValue;
+ import org.bukkit.plugin.Plugin;
+ import org.bukkit.util.Vector;
+ 
++// Tweakkit start
++import com.afterkraft.configuration.CustomDataCompound;
++import com.afterkraft.configuration.CustomDataNBTFactory;
++// Tweakkit end
++
+ public abstract class CraftEntity implements org.bukkit.entity.Entity {
+     protected final CraftServer server;
+     protected Entity entity;
+@@ -415,4 +420,28 @@ public abstract class CraftEntity implements org.bukkit.entity.Entity {
+         return spigot;
+     }
+     // Spigot end
++
++    // Tweakkit start
++    private CustomDataCompound customData = new CustomDataCompound();
++
++    @Override
++    public CustomDataCompound getCustomData() {
++        return customData == null ? new CustomDataCompound() : customData;
++    }
++
++    public void readCustomdata(NBTTagCompound compound) {
++        if (compound.hasKey("tweakkit")) {
++            NBTTagCompound data = compound.getCompound("tweakkit");
++            customData = CustomDataNBTFactory.fromNBTtoCustom(data);
++        }
++    }
++
++    public void saveCustomData(NBTTagCompound compound) {
++        if (!compound.hasKey("tweakkit")) {
++            compound.set("tweakkit", new NBTTagCompound());
++        }
++        if (!this.getCustomData().isEmpty())
++            compound.set("tweakkit", CustomDataNBTFactory.fromCustomToNBT(this.getCustomData()));
++    }
++    // Tweakkit end
+ }
+-- 
+1.8.5.2 (Apple Git-48)
+

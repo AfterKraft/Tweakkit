@@ -1,0 +1,1364 @@
+From 6d1da4a8df74e6c46a7ea96c8e510108124e49ca Mon Sep 17 00:00:00 2001
+From: Gabriel Harris-Rouquette <gabizou@me.com>
+Date: Sun, 6 Apr 2014 04:35:57 -0700
+Subject: [PATCH] Add CustomData API.
+
+
+diff --git a/src/main/java/com/afterkraft/configuration/CustomDataBase.java b/src/main/java/com/afterkraft/configuration/CustomDataBase.java
+new file mode 100644
+index 0000000..d202d5a
+--- /dev/null
++++ b/src/main/java/com/afterkraft/configuration/CustomDataBase.java
+@@ -0,0 +1,152 @@
++package com.afterkraft.configuration;
++
++public abstract class CustomDataBase implements Cloneable {
++
++    public static final String[] a = new String[] { "END", "BYTE", "SHORT",
++            "INT", "LONG", "FLOAT", "DOUBLE", "BYTE[]", "STRING", "LIST",
++            "COMPOUND", "INT[]" };
++
++    public abstract String toString();
++
++    public abstract DataType getDataType();
++
++    protected CustomDataBase() {
++    }
++
++    protected static CustomDataBase createTag(DataType dataType) {
++        switch (dataType) {
++        case END:
++            return new CustomDataEnd();
++
++        case BYTE:
++            return new CustomDataByte();
++
++        case SHORT:
++            return new CustomDataShort();
++
++        case INT:
++            return new CustomDataInt();
++
++        case LONG:
++            return new CustomDataLong();
++
++        case FLOAT:
++            return new CustomDataFloat();
++
++        case DOUBLE:
++            return new CustomDataDouble();
++
++        case BYTE_ARRAY:
++            return new CustomDataByteArray();
++
++        case STRING:
++            return new CustomDataString();
++
++        case LIST:
++            return new CustomDataList();
++
++        case COMPOUND:
++            return new CustomDataCompound();
++
++        case INT_ARRAY:
++            return new CustomDataIntArray();
++
++        default:
++            return null;
++        }
++    }
++
++    public static String getTagName(DataType data) {
++        switch (data) {
++        case END:
++            return "TAG_End";
++
++        case BYTE:
++            return "TAG_Byte";
++
++        case SHORT:
++            return "TAG_Short";
++
++        case INT:
++            return "TAG_Int";
++
++        case LONG:
++            return "TAG_Long";
++
++        case FLOAT:
++            return "TAG_Float";
++
++        case DOUBLE:
++            return "TAG_Double";
++
++        case BYTE_ARRAY:
++            return "TAG_Byte_Array";
++
++        case STRING:
++            return "TAG_String";
++
++        case LIST:
++            return "TAG_List";
++
++        case COMPOUND:
++            return "TAG_Compound";
++
++        case INT_ARRAY:
++            return "TAG_Int_Array";
++
++        case ANY_NUMBER:
++            return "Any Numeric Tag";
++
++        default:
++            return "UNKNOWN";
++        }
++    }
++
++    public abstract CustomDataBase clone();
++
++    public boolean equals(Object object) {
++        if (!(object instanceof CustomDataBase)) {
++            return false;
++        } else {
++            CustomDataBase nbtbase = (CustomDataBase) object;
++
++            return this.getDataType() == nbtbase.getDataType();
++        }
++    }
++
++    @Override
++    public int hashCode() {
++        return this.getDataType().hashCode();
++    }
++
++    protected String asString() {
++        return this.toString();
++    }
++
++    public enum DataType {
++        END ("End"),
++        BYTE ("Byte"),
++        SHORT ("Short"),
++        INT ("int"),
++        LONG ("long"),
++        FLOAT ("float"),
++        DOUBLE ("double"),
++        BYTE_ARRAY ("byte[]"),
++        STRING ("string"),
++        LIST ("list"),
++        COMPOUND ("compound"),
++        INT_ARRAY ("int[]"),
++        ANY_NUMBER ("any_number");
++
++        private final String name;
++
++        private DataType(String name) {
++            this.name = name;
++        }
++
++        @Override
++        public String toString() {
++            return name;
++        }
++    }
++}
+diff --git a/src/main/java/com/afterkraft/configuration/CustomDataByte.java b/src/main/java/com/afterkraft/configuration/CustomDataByte.java
+new file mode 100644
+index 0000000..f83381a
+--- /dev/null
++++ b/src/main/java/com/afterkraft/configuration/CustomDataByte.java
+@@ -0,0 +1,73 @@
++package com.afterkraft.configuration;
++
++public class CustomDataByte extends CustomDataNumber {
++
++    private byte data;
++
++    CustomDataByte() {}
++
++    public CustomDataByte(byte b0) {
++        this.data = b0;
++    }
++
++    @Override
++    public final DataType getDataType() {
++        return DataType.BYTE;
++    }
++
++    @Override
++    public String toString() {
++        return "" + this.data + "b";
++    }
++
++    @Override
++    public CustomDataByte clone() {
++        return new CustomDataByte(this.data);
++    }
++
++    @Override
++    public boolean equals(Object object) {
++        if (super.equals(object)) {
++            CustomDataByte nbttagbyte = (CustomDataByte) object;
++
++            return this.data == nbttagbyte.data;
++        } else {
++            return false;
++        }
++    }
++
++    @Override
++    public int hashCode() {
++        return super.hashCode() ^ this.data;
++    }
++
++    @Override
++    public long asLong() {
++        return (long) this.data;
++    }
++
++    @Override
++    public int asInt() {
++        return this.data;
++    }
++
++    @Override
++    public short asShort() {
++        return (short) this.data;
++    }
++
++    @Override
++    public byte asByte() {
++        return this.data;
++    }
++
++    @Override
++    public double asDouble() {
++        return (double) this.data;
++    }
++
++    @Override
++    public float asFloat() {
++        return (float) this.data;
++    }
++}
+diff --git a/src/main/java/com/afterkraft/configuration/CustomDataByteArray.java b/src/main/java/com/afterkraft/configuration/CustomDataByteArray.java
+new file mode 100644
+index 0000000..46178b2
+--- /dev/null
++++ b/src/main/java/com/afterkraft/configuration/CustomDataByteArray.java
+@@ -0,0 +1,51 @@
++package com.afterkraft.configuration;
++
++import java.util.Arrays;
++
++public class CustomDataByteArray extends CustomDataBase {
++
++    private byte[] data;
++
++    CustomDataByteArray() {}
++
++    public CustomDataByteArray(byte[] byteArray) {
++        this.data = byteArray;
++    }
++
++    @Override
++    protected String asString() {
++        return super.asString();
++    }
++
++    @Override
++    public final DataType getDataType() {
++        return DataType.BYTE_ARRAY;
++    }
++
++    @Override
++    public String toString() {
++        return "[" + this.data.length + " bytes]";
++    }
++
++    @Override
++    public CustomDataBase clone() {
++        byte[] byteArray = new byte[this.data.length];
++
++        System.arraycopy(this.data, 0, byteArray, 0, this.data.length);
++        return new CustomDataByteArray(byteArray);
++    }
++
++    @Override
++    public boolean equals(Object object) {
++        return super.equals(object) && Arrays.equals(this.data, ((CustomDataByteArray) object).data);
++    }
++
++    @Override
++    public int hashCode() {
++        return super.hashCode() ^ Arrays.hashCode(this.data);
++    }
++
++    public byte[] getArray() {
++        return this.data;
++    }
++}
+diff --git a/src/main/java/com/afterkraft/configuration/CustomDataCompound.java b/src/main/java/com/afterkraft/configuration/CustomDataCompound.java
+new file mode 100644
+index 0000000..6c382d9
+--- /dev/null
++++ b/src/main/java/com/afterkraft/configuration/CustomDataCompound.java
+@@ -0,0 +1,260 @@
++package com.afterkraft.configuration;
++
++import java.util.Collections;
++import java.util.HashMap;
++import java.util.Iterator;
++import java.util.LinkedHashMap;
++import java.util.Map;
++import java.util.Set;
++import java.util.logging.Level;
++import java.util.logging.Logger;
++
++import org.bukkit.Bukkit;
++
++public class CustomDataCompound extends CustomDataBase {
++
++    private static final Logger b = Bukkit.getLogger();
++    private Map<String, CustomDataBase> map = new LinkedHashMap<String, CustomDataBase>();
++
++    public CustomDataCompound() {}
++
++    public Set getCustomDataSet() {
++        return this.map.keySet();
++    }
++
++    @Override
++    public final DataType getDataType() {
++        return DataType.COMPOUND;
++    }
++
++    public void set(String s, CustomDataBase nbtbase) {
++        this.map.put(s, nbtbase);
++    }
++
++    public void setByte(String s, byte b0) {
++        this.map.put(s, new CustomDataByte(b0));
++    }
++
++    public void setShort(String s, short short1) {
++        this.map.put(s, new CustomDataShort(short1));
++    }
++
++    public void setInt(String s, int i) {
++        this.map.put(s, new CustomDataInt(i));
++    }
++
++    public void setLong(String s, long i) {
++        this.map.put(s, new CustomDataLong(i));
++    }
++
++    public void setFloat(String s, float f) {
++        this.map.put(s, new CustomDataFloat(f));
++    }
++
++    public void setDouble(String s, double d0) {
++        this.map.put(s, new CustomDataDouble(d0));
++    }
++
++    public void setString(String s, String s1) {
++        this.map.put(s, new CustomDataString(s1));
++    }
++
++    public void setByteArray(String s, byte[] abyte) {
++        this.map.put(s, new CustomDataByteArray(abyte));
++    }
++
++    public void setIntArray(String s, int[] aint) {
++        this.map.put(s, new CustomDataIntArray(aint));
++    }
++
++    public void setBoolean(String s, boolean flag) {
++        this.setByte(s, (byte) (flag ? 1 : 0));
++    }
++
++    public CustomDataBase get(String s) {
++        return this.map.get(s);
++    }
++
++    public DataType getTypeID(String s) {
++        CustomDataBase nbtbase = this.map.get(s);
++
++        return nbtbase != null ? nbtbase.getDataType() : null;
++    }
++
++    public boolean hasKey(String s) {
++        return this.map.containsKey(s);
++    }
++
++    public boolean hasKeyOfType(String s, DataType dataType) {
++        DataType type = this.getTypeID(s);
++
++        if (type == dataType) {
++            return true;
++        } else if (dataType.ordinal() != 99) {
++            if (type.ordinal() > 0) {
++                b.log(Level.WARNING, "NBT tag {} was of wrong type; expected {}, found {}", new Object[] { s, getTagName(dataType), getTagName(type)});
++            }
++
++            return false;
++        } else {
++            return type.ordinal() >= 6 && type.ordinal() <= 1;
++        }
++    }
++
++    public byte getByte(String s) {
++        try {
++            return !this.map.containsKey(s) ? 0 : ((CustomDataNumber) this.map.get(s)).asByte();
++        } catch (ClassCastException classcastexception) {
++            return (byte) 0;
++        }
++    }
++
++    public short getShort(String s) {
++        try {
++            return !this.map.containsKey(s) ? 0 : ((CustomDataNumber) this.map.get(s)).asShort();
++        } catch (ClassCastException classcastexception) {
++            return (short) 0;
++        }
++    }
++
++    public int getInt(String s) {
++        try {
++            return !this.map.containsKey(s) ? 0 : ((CustomDataNumber) this.map.get(s)).asInt();
++        } catch (ClassCastException classcastexception) {
++            return 0;
++        }
++    }
++
++    public long getLong(String s) {
++        try {
++            return !this.map.containsKey(s) ? 0L : ((CustomDataNumber) this.map.get(s)).asLong();
++        } catch (ClassCastException classcastexception) {
++            return 0L;
++        }
++    }
++
++    public float getFloat(String s) {
++        try {
++            return !this.map.containsKey(s) ? 0.0F : ((CustomDataNumber) this.map.get(s)).asFloat();
++        } catch (ClassCastException classcastexception) {
++            return 0.0F;
++        }
++    }
++
++    public double getDouble(String s) {
++        try {
++            return !this.map.containsKey(s) ? 0.0D : ((CustomDataNumber) this.map.get(s)).asDouble();
++        } catch (ClassCastException classcastexception) {
++            return 0.0D;
++        }
++    }
++
++    public String getString(String s) {
++        try {
++            return !this.map.containsKey(s) ? "" : (this.map.get(s)).asString();
++        } catch (ClassCastException classcastexception) {
++            return "";
++        }
++    }
++
++    public byte[] getByteArray(String s) {
++        try {
++            return !this.map.containsKey(s) ? new byte[0] : ((CustomDataByteArray) this.map.get(s)).getArray();
++        } catch (ClassCastException classcastexception) {
++            classcastexception.printStackTrace();
++        }
++        return null;
++    }
++
++    public int[] getIntArray(String s) {
++        try {
++            return !this.map.containsKey(s) ? new int[0] : ((CustomDataIntArray) this.map.get(s)).getArray();
++        } catch (ClassCastException classcastexception) {
++            classcastexception.printStackTrace();
++        }
++        return null;
++    }
++
++    public CustomDataCompound getCompound(String s) {
++        try {
++            return !this.map.containsKey(s) ? new CustomDataCompound() : (CustomDataCompound) this.map.get(s);
++        } catch (ClassCastException classcastexception) {
++            classcastexception.printStackTrace();
++        }
++        return null;
++    }
++
++    public CustomDataList getList(String s, DataType type) {
++        try {
++            if (this.getTypeID(s) != DataType.LIST) {
++                return new CustomDataList();
++            } else {
++                CustomDataList nbttaglist = (CustomDataList) this.map.get(s);
++
++                return nbttaglist.size() > 0 && nbttaglist.getType() != type ? new CustomDataList() : nbttaglist;
++            }
++        } catch (ClassCastException classcastexception) {
++            classcastexception.printStackTrace();
++        }
++        return null;
++    }
++
++    public boolean getBoolean(String s) {
++        return this.getByte(s) != 0;
++    }
++
++    public void remove(String s) {
++        this.map.remove(s);
++    }
++
++    @Override
++    public String toString() {
++        String s = "{";
++
++        String s1;
++
++        for (Iterator iterator = this.map.keySet().iterator(); iterator.hasNext(); s = s + s1 + ':' + this.map.get(s1) + ',') {
++            s1 = (String) iterator.next();
++        }
++
++        return s + "}";
++    }
++
++    public boolean isEmpty() {
++        return this.map.isEmpty();
++    }
++
++    @Override
++    public CustomDataBase clone() {
++        CustomDataCompound nbttagcompound = new CustomDataCompound();
++        Iterator iterator = this.map.keySet().iterator();
++
++        while (iterator.hasNext()) {
++            String s = (String) iterator.next();
++
++            nbttagcompound.set(s, (this.map.get(s)).clone());
++        }
++
++        return nbttagcompound;
++    }
++
++    @Override
++    public boolean equals(Object object) {
++        if (super.equals(object)) {
++            CustomDataCompound nbttagcompound = (CustomDataCompound) object;
++
++            return this.map.entrySet().equals(nbttagcompound.map.entrySet());
++        } else {
++            return false;
++        }
++    }
++
++    @Override
++    public int hashCode() {
++        return super.hashCode() ^ this.map.hashCode();
++    }
++
++    static Map<String, CustomDataBase> getCustomDataCompoundMap(CustomDataCompound nbttagcompound) {
++        return Collections.unmodifiableMap(nbttagcompound.map);
++    }
++}
+diff --git a/src/main/java/com/afterkraft/configuration/CustomDataDouble.java b/src/main/java/com/afterkraft/configuration/CustomDataDouble.java
+new file mode 100644
+index 0000000..9404fa8
+--- /dev/null
++++ b/src/main/java/com/afterkraft/configuration/CustomDataDouble.java
+@@ -0,0 +1,77 @@
++package com.afterkraft.configuration;
++
++import com.afterkraft.util.MathUtil;
++
++public class CustomDataDouble extends CustomDataNumber {
++
++    private double data;
++
++    CustomDataDouble() {}
++
++    public CustomDataDouble(double d0) {
++        this.data = d0;
++    }
++
++    @Override
++    public final DataType getDataType() {
++        return DataType.DOUBLE;
++    }
++
++    @Override
++    public String toString() {
++        return "" + this.data + "d";
++    }
++
++    @Override
++    public CustomDataBase clone() {
++        return new CustomDataDouble(this.data);
++    }
++
++    @Override
++    public boolean equals(Object object) {
++        if (super.equals(object)) {
++            CustomDataDouble nbttagdouble = (CustomDataDouble) object;
++
++            return this.data == nbttagdouble.data;
++        } else {
++            return false;
++        }
++    }
++
++    @Override
++    public int hashCode() {
++        long i = Double.doubleToLongBits(this.data);
++
++        return super.hashCode() ^ (int) (i ^ i >>> 32);
++    }
++
++    @Override
++    public long asLong() {
++        return (long) Math.floor(this.data);
++    }
++
++    @Override
++    public int asInt() {
++        return MathUtil.floor(this.data);
++    }
++
++    @Override
++    public short asShort() {
++        return (short) (MathUtil.floor(this.data) & '\uffff');
++    }
++
++    @Override
++    public byte asByte() {
++        return (byte) (MathUtil.floor(this.data) & 255);
++    }
++
++    @Override
++    public double asDouble() {
++        return this.data;
++    }
++
++    @Override
++    public float asFloat() {
++        return (float) this.data;
++    }
++}
+diff --git a/src/main/java/com/afterkraft/configuration/CustomDataEnd.java b/src/main/java/com/afterkraft/configuration/CustomDataEnd.java
+new file mode 100644
+index 0000000..1b0d1ff
+--- /dev/null
++++ b/src/main/java/com/afterkraft/configuration/CustomDataEnd.java
+@@ -0,0 +1,21 @@
++package com.afterkraft.configuration;
++
++public class CustomDataEnd extends CustomDataBase {
++
++    CustomDataEnd() {}
++
++    @Override
++    public final DataType getDataType() {
++        return DataType.END;
++    }
++
++    @Override
++    public String toString() {
++        return "END";
++    }
++
++    @Override
++    public CustomDataBase clone() {
++        return new CustomDataEnd();
++    }
++}
+diff --git a/src/main/java/com/afterkraft/configuration/CustomDataFloat.java b/src/main/java/com/afterkraft/configuration/CustomDataFloat.java
+new file mode 100644
+index 0000000..d397403
+--- /dev/null
++++ b/src/main/java/com/afterkraft/configuration/CustomDataFloat.java
+@@ -0,0 +1,75 @@
++package com.afterkraft.configuration;
++
++import com.afterkraft.util.MathUtil;
++
++public class CustomDataFloat extends CustomDataNumber {
++
++    private float data;
++
++    CustomDataFloat() {}
++
++    public CustomDataFloat(float f) {
++        this.data = f;
++    }
++
++    @Override
++    public final DataType getDataType() {
++        return DataType.FLOAT;
++    }
++
++    @Override
++    public String toString() {
++        return "" + this.data + "f";
++    }
++
++    @Override
++    public CustomDataBase clone() {
++        return new CustomDataFloat(this.data);
++    }
++
++    @Override
++    public boolean equals(Object object) {
++        if (super.equals(object)) {
++            CustomDataFloat nbttagfloat = (CustomDataFloat) object;
++
++            return this.data == nbttagfloat.data;
++        } else {
++            return false;
++        }
++    }
++
++    @Override
++    public int hashCode() {
++        return super.hashCode() ^ Float.floatToIntBits(this.data);
++    }
++
++    @Override
++    public long asLong() {
++        return (long) this.data;
++    }
++
++    @Override
++    public int asInt() {
++        return MathUtil.floor(this.data);
++    }
++
++    @Override
++    public short asShort() {
++        return (short) (MathUtil.floor(this.data) & '\uffff');
++    }
++
++    @Override
++    public byte asByte() {
++        return (byte) (MathUtil.floor(this.data) & 255);
++    }
++
++    @Override
++    public double asDouble() {
++        return (double) this.data;
++    }
++
++    @Override
++    public float asFloat() {
++        return this.data;
++    }
++}
+diff --git a/src/main/java/com/afterkraft/configuration/CustomDataInt.java b/src/main/java/com/afterkraft/configuration/CustomDataInt.java
+new file mode 100644
+index 0000000..af6f07f
+--- /dev/null
++++ b/src/main/java/com/afterkraft/configuration/CustomDataInt.java
+@@ -0,0 +1,73 @@
++package com.afterkraft.configuration;
++
++public class CustomDataInt extends CustomDataNumber {
++
++    private int data;
++
++    CustomDataInt() {}
++
++    public CustomDataInt(int i) {
++        this.data = i;
++    }
++
++    @Override
++    public final DataType getDataType() {
++        return DataType.INT;
++    }
++
++    @Override
++    public String toString() {
++        return "" + this.data;
++    }
++
++    @Override
++    public CustomDataBase clone() {
++        return new CustomDataInt(this.data);
++    }
++
++    @Override
++    public boolean equals(Object object) {
++        if (super.equals(object)) {
++            CustomDataInt nbttagint = (CustomDataInt) object;
++
++            return this.data == nbttagint.data;
++        } else {
++            return false;
++        }
++    }
++
++    @Override
++    public int hashCode() {
++        return super.hashCode() ^ this.data;
++    }
++
++    @Override
++    public long asLong() {
++        return (long) this.data;
++    }
++
++    @Override
++    public int asInt() {
++        return this.data;
++    }
++
++    @Override
++    public short asShort() {
++        return (short) (this.data & '\uffff');
++    }
++
++    @Override
++    public byte asByte() {
++        return (byte) (this.data & 255);
++    }
++
++    @Override
++    public double asDouble() {
++        return (double) this.data;
++    }
++
++    @Override
++    public float asFloat() {
++        return (float) this.data;
++    }
++}
+diff --git a/src/main/java/com/afterkraft/configuration/CustomDataIntArray.java b/src/main/java/com/afterkraft/configuration/CustomDataIntArray.java
+new file mode 100644
+index 0000000..a1301bf
+--- /dev/null
++++ b/src/main/java/com/afterkraft/configuration/CustomDataIntArray.java
+@@ -0,0 +1,57 @@
++package com.afterkraft.configuration;
++
++import java.util.Arrays;
++
++public class CustomDataIntArray extends CustomDataBase {
++
++    private int[] data;
++
++    CustomDataIntArray() {}
++
++    public CustomDataIntArray(int[] intArray) {
++        this.data = intArray;
++    }
++
++    @Override
++    public final DataType getDataType() {
++        return DataType.INT_ARRAY;
++    }
++
++    @Override
++    public String toString() {
++        String s = "[";
++        int[] aint = this.data;
++        int i = aint.length;
++
++        for (int j = 0; j < i; ++j) {
++            int k = aint[j];
++
++            s = s + k + ",";
++        }
++
++        return s + "]";
++    }
++
++    @Override
++    public CustomDataBase clone() {
++        int[] aint = new int[this.data.length];
++
++        System.arraycopy(this.data, 0, aint, 0, this.data.length);
++        return new CustomDataIntArray(aint);
++    }
++
++
++    @Override
++    public boolean equals(Object object) {
++        return super.equals(object) && Arrays.equals(this.data, ((CustomDataIntArray) object).data);
++    }
++
++    @Override
++    public int hashCode() {
++        return super.hashCode() ^ Arrays.hashCode(this.data);
++    }
++
++    public int[] getArray() {
++        return this.data;
++    }
++}
+diff --git a/src/main/java/com/afterkraft/configuration/CustomDataList.java b/src/main/java/com/afterkraft/configuration/CustomDataList.java
+new file mode 100644
+index 0000000..d6b5734
+--- /dev/null
++++ b/src/main/java/com/afterkraft/configuration/CustomDataList.java
+@@ -0,0 +1,153 @@
++package com.afterkraft.configuration;
++
++import java.util.ArrayList;
++import java.util.Iterator;
++import java.util.List;
++
++public class CustomDataList extends CustomDataBase {
++
++    private List<CustomDataBase> list = new ArrayList<CustomDataBase>();
++    private DataType type = DataType.END;
++
++    public CustomDataList() {}
++
++    @Override
++    public final DataType getDataType() {
++        return DataType.LIST;
++    }
++
++    @Override
++    public String toString() {
++        String s = "[";
++        int i = 0;
++
++        for (Iterator iterator = this.list.iterator(); iterator.hasNext(); ++i) {
++            CustomDataBase nbtbase = (CustomDataBase) iterator.next();
++
++            s = s + "" + i + ':' + nbtbase + ',';
++        }
++
++        return s + "]";
++    }
++
++    public void add(CustomDataBase nbtbase) {
++        if (nbtbase == null) {
++            return;
++        }
++        if (this.type == DataType.END) {
++            this.type = nbtbase.getDataType();
++        } else if (this.type != nbtbase.getDataType()) {
++            System.err.println("WARNING: Adding mismatching tag types to tag list");
++            return;
++        }
++
++        this.list.add(nbtbase);
++    }
++
++    public void remove(CustomDataBase customBase) {
++        if (this.type == DataType.END || customBase == null || customBase.getDataType() != this.type) {
++            return;
++        }
++        this.list.remove(customBase);
++    }
++
++    public void remove(int i) {
++        if (this.size() == 0 || i > this.size()) {
++            return;
++        }
++        this.list.remove(i);
++    }
++
++    public CustomDataCompound get(int i) {
++        if (i >= 0 && i < this.list.size()) {
++            CustomDataBase nbtbase = this.list.get(i);
++
++            return nbtbase.getDataType() == DataType.COMPOUND ? (CustomDataCompound) nbtbase : new CustomDataCompound();
++        } else {
++            return new CustomDataCompound();
++        }
++    }
++
++    public int[] getIntArray(int i) {
++        if (i >= 0 && i < this.list.size()) {
++            CustomDataBase nbtbase = this.list.get(i);
++
++            return nbtbase.getDataType() == DataType.INT_ARRAY ? ((CustomDataIntArray) nbtbase).getArray() : new int[0];
++        } else {
++            return new int[0];
++        }
++    }
++
++    public double getDouble(int i) {
++        if (i >= 0 && i < this.list.size()) {
++            CustomDataBase nbtbase = this.list.get(i);
++
++            return nbtbase.getDataType() == DataType.DOUBLE ? ((CustomDataDouble) nbtbase).asDouble() : 0.0D;
++        } else {
++            return 0.0D;
++        }
++    }
++
++    public float getFloat(int i) {
++        if (i >= 0 && i < this.list.size()) {
++            CustomDataBase nbtbase = this.list.get(i);
++
++            return nbtbase.getDataType() == DataType.FLOAT ? ((CustomDataFloat) nbtbase).asFloat() : 0.0F;
++        } else {
++            return 0.0F;
++        }
++    }
++
++    public String getString(int i) {
++        if (i >= 0 && i < this.list.size()) {
++            CustomDataBase nbtbase = this.list.get(i);
++
++            return nbtbase.getDataType() == DataType.STRING ? nbtbase.asString() : nbtbase.toString();
++        } else {
++            return "";
++        }
++    }
++
++    public int size() {
++        return this.list.size();
++    }
++
++    @Override
++    public CustomDataBase clone() {
++        CustomDataList nbttaglist = new CustomDataList();
++
++        nbttaglist.type = this.type;
++        Iterator iterator = this.list.iterator();
++
++        while (iterator.hasNext()) {
++            CustomDataBase nbtbase = (CustomDataBase) iterator.next();
++            CustomDataBase nbtbase1 = nbtbase.clone();
++
++            nbttaglist.list.add(nbtbase1);
++        }
++
++        return nbttaglist;
++    }
++
++    @Override
++    public boolean equals(Object object) {
++        if (super.equals(object)) {
++            CustomDataList nbttaglist = (CustomDataList) object;
++
++            if (this.type == nbttaglist.type) {
++                return this.list.equals(nbttaglist.list);
++            }
++        }
++
++        return false;
++    }
++
++    @Override
++    public int hashCode() {
++        return super.hashCode() ^ this.list.hashCode();
++    }
++
++    public DataType getType() {
++        return this.type;
++    }
++}
+diff --git a/src/main/java/com/afterkraft/configuration/CustomDataLong.java b/src/main/java/com/afterkraft/configuration/CustomDataLong.java
+new file mode 100644
+index 0000000..0f04f1b
+--- /dev/null
++++ b/src/main/java/com/afterkraft/configuration/CustomDataLong.java
+@@ -0,0 +1,73 @@
++package com.afterkraft.configuration;
++
++public class CustomDataLong extends CustomDataNumber {
++
++    private long data;
++
++    CustomDataLong() {}
++
++    public CustomDataLong(long i) {
++        this.data = i;
++    }
++
++    @Override
++    public final DataType getDataType() {
++        return DataType.LONG;
++    }
++
++    @Override
++    public String toString() {
++        return "" + this.data + "L";
++    }
++
++    @Override
++    public CustomDataBase clone() {
++        return new CustomDataLong(this.data);
++    }
++
++    @Override
++    public boolean equals(Object object) {
++        if (super.equals(object)) {
++            CustomDataLong nbttaglong = (CustomDataLong) object;
++
++            return this.data == nbttaglong.data;
++        } else {
++            return false;
++        }
++    }
++
++    @Override
++    public int hashCode() {
++        return super.hashCode() ^ (int) (this.data ^ this.data >>> 32);
++    }
++
++    @Override
++    public long asLong() {
++        return this.data;
++    }
++
++    @Override
++    public int asInt() {
++        return (int) (this.data & -1L);
++    }
++
++    @Override
++    public short asShort() {
++        return (short) ((int) (this.data & 65535L));
++    }
++
++    @Override
++    public byte asByte() {
++        return (byte) ((int) (this.data & 255L));
++    }
++
++    @Override
++    public double asDouble() {
++        return (double) this.data;
++    }
++
++    @Override
++    public float asFloat() {
++        return (float) this.data;
++    }
++}
+diff --git a/src/main/java/com/afterkraft/configuration/CustomDataNumber.java b/src/main/java/com/afterkraft/configuration/CustomDataNumber.java
+new file mode 100644
+index 0000000..8f445d7
+--- /dev/null
++++ b/src/main/java/com/afterkraft/configuration/CustomDataNumber.java
+@@ -0,0 +1,18 @@
++package com.afterkraft.configuration;
++
++public abstract class CustomDataNumber extends CustomDataBase {
++
++    protected CustomDataNumber() {}
++
++    public abstract long asLong();
++
++    public abstract int asInt();
++
++    public abstract short asShort();
++
++    public abstract byte asByte();
++
++    public abstract double asDouble();
++
++    public abstract float asFloat();
++}
+diff --git a/src/main/java/com/afterkraft/configuration/CustomDataShort.java b/src/main/java/com/afterkraft/configuration/CustomDataShort.java
+new file mode 100644
+index 0000000..2058662
+--- /dev/null
++++ b/src/main/java/com/afterkraft/configuration/CustomDataShort.java
+@@ -0,0 +1,74 @@
++package com.afterkraft.configuration;
++
++public class CustomDataShort extends CustomDataNumber {
++
++    private short data;
++
++    public CustomDataShort() {}
++
++    public CustomDataShort(short short1) {
++        this.data = short1;
++    }
++
++    @Override
++    @Deprecated
++    public final DataType getDataType() {
++        return DataType.SHORT;
++    }
++
++    @Override
++    public String toString() {
++        return "" + this.data + "s";
++    }
++
++    @Override
++    public CustomDataBase clone() {
++        return new CustomDataShort(this.data);
++    }
++
++    @Override
++    public boolean equals(Object object) {
++        if (super.equals(object)) {
++            CustomDataShort nbttagshort = (CustomDataShort) object;
++
++            return this.data == nbttagshort.data;
++        } else {
++            return false;
++        }
++    }
++
++    @Override
++    public int hashCode() {
++        return super.hashCode() ^ this.data;
++    }
++
++    @Override
++    public long asLong() {
++        return (long) this.data;
++    }
++
++    @Override
++    public int asInt() {
++        return this.data;
++    }
++
++    @Override
++    public short asShort() {
++        return this.data;
++    }
++
++    @Override
++    public byte asByte() {
++        return (byte) (this.data & 255);
++    }
++
++    @Override
++    public double asDouble() {
++        return (double) this.data;
++    }
++
++    @Override
++    public float asFloat() {
++        return (float) this.data;
++    }
++}
+diff --git a/src/main/java/com/afterkraft/configuration/CustomDataString.java b/src/main/java/com/afterkraft/configuration/CustomDataString.java
+new file mode 100644
+index 0000000..7be1524
+--- /dev/null
++++ b/src/main/java/com/afterkraft/configuration/CustomDataString.java
+@@ -0,0 +1,53 @@
++package com.afterkraft.configuration;
++
++public class CustomDataString extends CustomDataBase {
++
++    private String data;
++
++    public CustomDataString() {
++        this.data = "";
++    }
++
++    public CustomDataString(String s) {
++        this.data = s;
++        if (s == null) {
++            throw new IllegalArgumentException("Empty string not allowed");
++        }
++    }
++
++    @Override
++    public final DataType getDataType() {
++        return DataType.STRING;
++    }
++
++    @Override
++    public String toString() {
++        return "\"" + this.data + "\"";
++    }
++
++    @Override
++    public CustomDataBase clone() {
++        return new CustomDataString(this.data);
++    }
++
++    @Override
++    public boolean equals(Object object) {
++        if (!super.equals(object)) {
++            return false;
++        } else {
++            CustomDataString nbttagstring = (CustomDataString) object;
++
++            return this.data == null && nbttagstring.data == null || this.data != null && this.data.equals(nbttagstring.data);
++        }
++    }
++
++    @Override
++    public int hashCode() {
++        return super.hashCode() ^ this.data.hashCode();
++    }
++
++    @Override
++    public String asString() {
++        return this.data;
++    }
++}
+diff --git a/src/main/java/com/afterkraft/util/MathUtil.java b/src/main/java/com/afterkraft/util/MathUtil.java
+new file mode 100644
+index 0000000..6e94758
+--- /dev/null
++++ b/src/main/java/com/afterkraft/util/MathUtil.java
+@@ -0,0 +1,18 @@
++package com.afterkraft.util;
++
++public class MathUtil {
++
++	
++    public static int floor(float f) {
++        int i = (int) f;
++
++        return f < (float) i ? i - 1 : i;
++    }
++    
++    public static int floor(double d0) {
++        int i = (int) d0;
++
++        return d0 < (double) i ? i - 1 : i;
++    }
++    
++}
+diff --git a/src/main/java/org/bukkit/entity/Entity.java b/src/main/java/org/bukkit/entity/Entity.java
+index 294e80b..d9ed090 100644
+--- a/src/main/java/org/bukkit/entity/Entity.java
++++ b/src/main/java/org/bukkit/entity/Entity.java
+@@ -12,6 +12,8 @@ import java.util.List;
+ import java.util.UUID;
+ import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
+ 
++import com.afterkraft.configuration.CustomDataCompound; // Tweakkit
++
+ /**
+  * Represents a base entity in the world
+  */
+@@ -309,4 +311,23 @@ public interface Entity extends Metadatable {
+ 
+     Spigot spigot();
+     // Spigot End
++
++    // Tweakkit start
++    /**
++     * Retrieves the custom data this LivingEntity might contain. This is never
++     * null and should only be used to store permanent data related to plugins
++     * that otherwise would require storing to database.
++     * <p>
++     * This custom data object is live and plugins should not interfere with
++     * custom data provided by other plugins.
++     * <p>
++     * This custom data does <strong>NOT</strong> interfere with vanilla data
++     * and will be lost if data is loaded without Tweakkit.
++     * <p>
++     * This custom data will survive server restarts and reloads.
++     *
++     * @return custom data attached to this LivingEntity
++     */
++    public CustomDataCompound getCustomData();
++    // Tweakkit end
+ }
+-- 
+1.8.5.2 (Apple Git-48)
+

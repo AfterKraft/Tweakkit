@@ -1,4 +1,4 @@
-From bf1f62f16eabbc390710c0d630a9d23848c23781 Mon Sep 17 00:00:00 2001
+From 5f3ad33480a86937c19b86d7334f7000005a8ed8 Mon Sep 17 00:00:00 2001
 From: Gabriel Harris-Rouquette <gabizou@me.com>
 Date: Sun, 23 Mar 2014 17:35:02 -0700
 Subject: [PATCH] Implement EntityPotionEffectChangeEvent
@@ -33,7 +33,7 @@ index 8fa09b0..3a40fa3 100644
              }
  
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index 7ec500e..8ea8a5e 100644
+index 33533c7..4e96ed6 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
 @@ -8,9 +8,12 @@ import java.util.Random;
@@ -97,7 +97,7 @@ index 7ec500e..8ea8a5e 100644
          if (this.d(mobeffect)) {
              if (this.effects.containsKey(Integer.valueOf(mobeffect.getEffectId()))) {
                  ((MobEffect) this.effects.get(Integer.valueOf(mobeffect.getEffectId()))).a(mobeffect);
-@@ -563,12 +593,28 @@ public abstract class EntityLiving extends Entity {
+@@ -563,13 +593,29 @@ public abstract class EntityLiving extends Entity {
      }
  
      public void removeEffect(int i) {
@@ -109,8 +109,8 @@ index 7ec500e..8ea8a5e 100644
              this.b(mobeffect);
          }
 +        // Tweakkit - end */
-+    }
-+
+     }
+ 
 +    // Tweakkit start - handle remove effect
 +    public void removeEffect(int i, EntityPotionEffectChangeEvent.Cause cause) {
 +        MobEffect mobeffect = (MobEffect) this.effects.remove(Integer.valueOf(i));
@@ -121,11 +121,12 @@ index 7ec500e..8ea8a5e 100644
 +        PotionEffect bukkitEffect = event.getEffect();
 +        mobeffect = new MobEffect(bukkitEffect.getType().getId(),bukkitEffect.getDuration(),bukkitEffect.getAmplifier(),event.isAmbient());
 +        this.b(mobeffect);
-     }
++    }
 +    // Tweakkit end
- 
++
      protected void a(MobEffect mobeffect) {
          this.updateEffects = true;
+         if (!this.world.isStatic) {
 diff --git a/src/main/java/net/minecraft/server/EntityPotion.java b/src/main/java/net/minecraft/server/EntityPotion.java
 index 69db29f..c47c3dd 100644
 --- a/src/main/java/net/minecraft/server/EntityPotion.java
@@ -413,7 +414,7 @@ index fbc7874..d51e430 100644
              }
          }
 diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftLivingEntity.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftLivingEntity.java
-index c1f1782..ae6fc58 100644
+index 03a5627..ae6fc58 100644
 --- a/src/main/java/org/bukkit/craftbukkit/entity/CraftLivingEntity.java
 +++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftLivingEntity.java
 @@ -52,6 +52,7 @@ import org.bukkit.entity.Snowball;
