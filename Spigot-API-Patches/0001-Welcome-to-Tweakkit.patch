@@ -24,7 +24,7 @@ index ce2c97e..558295b 100644
 -    <artifactId>spigot-api</artifactId>
 +    <groupId>com.afterkraft</groupId>
 +    <artifactId>tweakkit-api</artifactId>
-     <version>1.7.5-R0.1-SNAPSHOT</version>
+     <version>1.7.8-R0.1-SNAPSHOT</version>
 -    <name>Spigot-API</name>
 -    <url>http://www.spigotmc.org</url>
 +    <name>Tweakkit-API</name>
