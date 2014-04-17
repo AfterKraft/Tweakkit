@@ -1,11 +1,11 @@
-From e8242945b76253e35d8bbd94ee74e4fb1bfe5221 Mon Sep 17 00:00:00 2001
+From e5718b3954f97e361b61aa049ef0dcbe97a1dc0f Mon Sep 17 00:00:00 2001
 From: Gabriel Harris-Rouquette <gabizou@me.com>
 Date: Tue, 11 Mar 2014 23:53:04 -0700
 Subject: [PATCH] Welcome to Tweakkit
 
 
 diff --git a/pom.xml b/pom.xml
-index ce2c97e..558295b 100644
+index 4bfd660..6772636 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -2,17 +2,17 @@
@@ -24,7 +24,7 @@ index ce2c97e..558295b 100644
 -    <artifactId>spigot-api</artifactId>
 +    <groupId>com.afterkraft</groupId>
 +    <artifactId>tweakkit-api</artifactId>
-     <version>1.7.8-R0.1-SNAPSHOT</version>
+     <version>1.7.9-R0.1-SNAPSHOT</version>
 -    <name>Spigot-API</name>
 -    <url>http://www.spigotmc.org</url>
 +    <name>Tweakkit-API</name>
