@@ -1,4 +1,4 @@
-From 167a64148cdb151e9c4994a77aa3673a36b623e4 Mon Sep 17 00:00:00 2001
+From 7818ad1eee079ea26fc8d0c9066335c79f1a91ed Mon Sep 17 00:00:00 2001
 From: Gabriel Harris-Rouquette <gabizou@me.com>
 Date: Sun, 6 Apr 2014 04:35:02 -0700
 Subject: [PATCH] Implement CustomEntityData API mark one.
@@ -150,10 +150,10 @@ index 0000000..c94f1cc
 +    }
 +}
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index 37a9cae..5dff6ff 100644
+index 961927b..620f29a 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
-@@ -1144,6 +1144,8 @@ public abstract class Entity {
+@@ -1146,6 +1146,8 @@ public abstract class Entity {
                      nbttagcompound.set("Riding", nbttagcompound1);
                  }
              }
@@ -162,7 +162,7 @@ index 37a9cae..5dff6ff 100644
          } catch (Throwable throwable) {
              CrashReport crashreport = CrashReport.a(throwable, "Saving entity NBT");
              CrashReportSystemDetails crashreportsystemdetails = crashreport.a("Entity being saved");
-@@ -1252,6 +1254,8 @@ public abstract class Entity {
+@@ -1254,6 +1256,8 @@ public abstract class Entity {
                  this.spawnIn(bworld == null ? null : ((CraftWorld) bworld).getHandle());
              }
              // CraftBukkit end

@@ -1,4 +1,4 @@
-From 5f3ad33480a86937c19b86d7334f7000005a8ed8 Mon Sep 17 00:00:00 2001
+From 036cf797f69d178a888045c6248c12897face4f5 Mon Sep 17 00:00:00 2001
 From: Gabriel Harris-Rouquette <gabizou@me.com>
 Date: Sun, 23 Mar 2014 17:35:02 -0700
 Subject: [PATCH] Implement EntityPotionEffectChangeEvent
@@ -33,7 +33,7 @@ index 8fa09b0..3a40fa3 100644
              }
  
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index 33533c7..4e96ed6 100644
+index f531103..f701643 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
 @@ -8,9 +8,12 @@ import java.util.Random;
@@ -142,7 +142,7 @@ index 69db29f..c47c3dd 100644
                                  }
                              }
 diff --git a/src/main/java/net/minecraft/server/EntitySkeleton.java b/src/main/java/net/minecraft/server/EntitySkeleton.java
-index cb25df1..bfa9d1e 100644
+index fd3fd3b..931ebda 100644
 --- a/src/main/java/net/minecraft/server/EntitySkeleton.java
 +++ b/src/main/java/net/minecraft/server/EntitySkeleton.java
 @@ -57,7 +57,8 @@ public class EntitySkeleton extends EntityMonster implements IRangedEntity {
@@ -156,7 +156,7 @@ index cb25df1..bfa9d1e 100644
  
              return true;
 diff --git a/src/main/java/net/minecraft/server/EntitySpider.java b/src/main/java/net/minecraft/server/EntitySpider.java
-index b151e73..ceffedb 100644
+index 67a23f6..8730c20 100644
 --- a/src/main/java/net/minecraft/server/EntitySpider.java
 +++ b/src/main/java/net/minecraft/server/EntitySpider.java
 @@ -171,7 +171,8 @@ public class EntitySpider extends EntityMonster {
@@ -212,18 +212,18 @@ index b8c3cef..80d183f 100644
                  }
              }
 diff --git a/src/main/java/net/minecraft/server/EntityZombie.java b/src/main/java/net/minecraft/server/EntityZombie.java
-index 902ecdf..59877d8 100644
+index 1eaac63..5d8346f 100644
 --- a/src/main/java/net/minecraft/server/EntityZombie.java
 +++ b/src/main/java/net/minecraft/server/EntityZombie.java
-@@ -9,6 +9,7 @@ import java.util.UUID;
- import org.bukkit.craftbukkit.entity.CraftLivingEntity;
+@@ -11,6 +11,7 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
  import org.bukkit.event.entity.EntityCombustByEntityEvent;
  import org.bukkit.event.entity.EntityCombustEvent;
+ import org.bukkit.event.entity.EntityTargetEvent;
 +import org.bukkit.event.entity.EntityPotionEffectChangeEvent; // Tweakkit
  //CraftBukkit end
  
  public class EntityZombie extends EntityMonster {
-@@ -438,8 +439,10 @@ public class EntityZombie extends EntityMonster {
+@@ -446,8 +447,10 @@ public class EntityZombie extends EntityMonster {
      protected void a(int i) {
          this.bt = i;
          this.getDataWatcher().watch(14, Byte.valueOf((byte) 1));
@@ -236,10 +236,10 @@ index 902ecdf..59877d8 100644
          this.world.broadcastEntityEffect(this, (byte) 16);
      }
  
-@@ -463,7 +466,8 @@ public class EntityZombie extends EntityMonster {
+@@ -471,7 +474,8 @@ public class EntityZombie extends EntityMonster {
  
          this.world.kill(this);
-         this.world.addEntity(entityvillager);
+         this.world.addEntity(entityvillager, CreatureSpawnEvent.SpawnReason.CURED); // CraftBukkit - add SpawnReason
 -        entityvillager.addEffect(new MobEffect(MobEffectList.CONFUSION.id, 200, 0));
 +        // Tweakkit - add 'EntityPotionEffectChangeEvent.Cause.MOB'
 +        entityvillager.addEffect(new MobEffect(MobEffectList.CONFUSION.id, 200, 0),EntityPotionEffectChangeEvent.Cause.MOB);
@@ -340,7 +340,7 @@ index 120bf1c..be53061 100644
              }
          }
 diff --git a/src/main/java/net/minecraft/server/MobEffectList.java b/src/main/java/net/minecraft/server/MobEffectList.java
-index dbbe63c..2bfd263 100644
+index a66e66c..d56fb52 100644
 --- a/src/main/java/net/minecraft/server/MobEffectList.java
 +++ b/src/main/java/net/minecraft/server/MobEffectList.java
 @@ -9,6 +9,7 @@ import net.minecraft.util.com.google.common.collect.Maps;
@@ -351,7 +351,7 @@ index dbbe63c..2bfd263 100644
  import org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason;
  // CraftBukkit end
  
-@@ -115,9 +116,16 @@ public class MobEffectList {
+@@ -126,9 +127,16 @@ public class MobEffectList {
          // CraftBukkit end
          int j;
  
@@ -371,7 +371,7 @@ index dbbe63c..2bfd263 100644
                  if (entityliving == null) {
                      entityliving1.damageEntity(DamageSource.MAGIC, (float) j);
                  } else {
-@@ -126,7 +134,8 @@ public class MobEffectList {
+@@ -137,7 +145,8 @@ public class MobEffectList {
                  }
              }
          } else {
@@ -449,7 +449,7 @@ index 03a5627..ae6fc58 100644
  
      public Collection<PotionEffect> getActivePotionEffects() {
 diff --git a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
-index c7e238f..843b911 100644
+index e1e8361..a3b69f2 100644
 --- a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
 +++ b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
 @@ -23,6 +23,7 @@ import net.minecraft.server.IInventory;
