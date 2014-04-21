@@ -36,12 +36,12 @@
 
     <distributionManagement>
         <repository>
-            <id>afterkraft-repo</id>
+            <id>afterkraft</id>
             <name>AfterKraft Releases</name>
             <url>http://nexus.afterkraft.com/content/repositories/releases/</url>
         </repository>
         <snapshotRepository>
-            <id>afterkraft-repo</id>
+            <id>afterkraft</id>
             <name>AfterKraft Snapshots</name>
             <url>http://nexus.afterkraft.com/content/repositories/snapshots/</url>
         </snapshotRepository>
