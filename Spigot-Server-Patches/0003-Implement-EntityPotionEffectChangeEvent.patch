@@ -1,4 +1,4 @@
-From 036cf797f69d178a888045c6248c12897face4f5 Mon Sep 17 00:00:00 2001
+From 19906b90eb3407d4539955235641b3c2800de7eb Mon Sep 17 00:00:00 2001
 From: Gabriel Harris-Rouquette <gabizou@me.com>
 Date: Sun, 23 Mar 2014 17:35:02 -0700
 Subject: [PATCH] Implement EntityPotionEffectChangeEvent
@@ -33,7 +33,7 @@ index 8fa09b0..3a40fa3 100644
              }
  
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index f531103..f701643 100644
+index 234d7db..8a8722b 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
 @@ -8,9 +8,12 @@ import java.util.Random;
@@ -449,7 +449,7 @@ index 03a5627..ae6fc58 100644
  
      public Collection<PotionEffect> getActivePotionEffects() {
 diff --git a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
-index e1e8361..a3b69f2 100644
+index 9a3c728..e3cbb22 100644
 --- a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
 +++ b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
 @@ -23,6 +23,7 @@ import net.minecraft.server.IInventory;
@@ -477,7 +477,7 @@ index e1e8361..a3b69f2 100644
  
  public class CraftEventFactory {
      public static final DamageSource MELTING = CraftDamageSource.copyOf(DamageSource.BURN);
-@@ -791,4 +795,17 @@ public class CraftEventFactory {
+@@ -812,4 +816,17 @@ public class CraftEventFactory {
          entityHuman.world.getServer().getPluginManager().callEvent(event);
          return (Cancellable) event;
      }
