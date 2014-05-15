@@ -1,15 +1,29 @@
-From e8242945b76253e35d8bbd94ee74e4fb1bfe5221 Mon Sep 17 00:00:00 2001
+From 6471e6d9fa4522afb505f90b9658f299b64e4360 Mon Sep 17 00:00:00 2001
 From: Gabriel Harris-Rouquette <gabizou@me.com>
 Date: Tue, 11 Mar 2014 23:53:04 -0700
 Subject: [PATCH] Welcome to Tweakkit
 
 
 diff --git a/pom.xml b/pom.xml
-index ce2c97e..558295b 100644
+index 4252e34..1c72389 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -2,17 +2,17 @@
+@@ -1,18 +1,18 @@
+ <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
      <modelVersion>4.0.0</modelVersion>
+-    <groupId>org.spigotmc</groupId>
+-    <artifactId>spigot-api</artifactId>
++    <groupId>com.afterkraft</groupId>
++    <artifactId>tweakkit-api</artifactId>
+     <version>1.7.9-R0.2-SNAPSHOT</version>
+-    <name>Spigot-API</name>
+-    <url>http://www.spigotmc.org</url>
++    <name>Tweakkit-API</name>
++    <url>http://afterkraft.com</url>
+ 
+     <properties>
+         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+     </properties>
  
      <parent>
 -        <groupId>org.spigotmc</groupId>
@@ -19,19 +33,6 @@ index ce2c97e..558295b 100644
          <version>dev-SNAPSHOT</version>
          <relativePath>../pom.xml</relativePath>
      </parent>
- 
--    <groupId>org.spigotmc</groupId>
--    <artifactId>spigot-api</artifactId>
-+    <groupId>com.afterkraft</groupId>
-+    <artifactId>tweakkit-api</artifactId>
-     <version>1.7.5-R0.1-SNAPSHOT</version>
--    <name>Spigot-API</name>
--    <url>http://www.spigotmc.org</url>
-+    <name>Tweakkit-API</name>
-+    <url>http://www.afterkraft.com</url>
- 
-     <properties>
-         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 -- 
 1.8.5.2 (Apple Git-48)
 
