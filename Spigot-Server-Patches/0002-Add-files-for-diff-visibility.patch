@@ -1,4 +1,4 @@
-From 51d3212cffb878b75ae7fbd9aa0ae47f80672792 Mon Sep 17 00:00:00 2001
+From 0fb71476e2d2570d35fc52cdec8bd6162d5c24bd Mon Sep 17 00:00:00 2001
 From: Gabriel Harris-Rouquette <gabizou@me.com>
 Date: Fri, 14 Mar 2014 20:59:08 -0700
 Subject: [PATCH] Add files for diff visibility
@@ -115,7 +115,7 @@ index 0000000..8fa09b0
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
 new file mode 100644
-index 0000000..5f1c21f
+index 0000000..b053cc4
 --- /dev/null
 +++ b/src/main/java/net/minecraft/server/EntityVillager.java
 @@ -0,0 +1,551 @@
@@ -172,7 +172,7 @@ index 0000000..5f1c21f
 +    }
 +
 +    protected void aC() {
-+        super.aD();
++        super.aC();
 +        this.getAttributeInstance(GenericAttributes.d).setValue(0.5D);
 +    }
 +
