@@ -1,4 +1,4 @@
-From 0fb71476e2d2570d35fc52cdec8bd6162d5c24bd Mon Sep 17 00:00:00 2001
+From a898c66058411a35f4169ee7fe6e217cdb1a6852 Mon Sep 17 00:00:00 2001
 From: Gabriel Harris-Rouquette <gabizou@me.com>
 Date: Fri, 14 Mar 2014 20:59:08 -0700
 Subject: [PATCH] Add files for diff visibility
@@ -6,7 +6,7 @@ Subject: [PATCH] Add files for diff visibility
 
 diff --git a/src/main/java/net/minecraft/server/EnchantmentWeaponDamage.java b/src/main/java/net/minecraft/server/EnchantmentWeaponDamage.java
 new file mode 100644
-index 0000000..c1e4143
+index 0000000..a7feb42
 --- /dev/null
 +++ b/src/main/java/net/minecraft/server/EnchantmentWeaponDamage.java
 @@ -0,0 +1,55 @@
@@ -65,10 +65,9 @@ index 0000000..c1e4143
 +        }
 +    }
 +}
-\ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/EntityCaveSpider.java b/src/main/java/net/minecraft/server/EntityCaveSpider.java
 new file mode 100644
-index 0000000..8fa09b0
+index 0000000..9895c6f
 --- /dev/null
 +++ b/src/main/java/net/minecraft/server/EntityCaveSpider.java
 @@ -0,0 +1,40 @@
@@ -112,10 +111,9 @@ index 0000000..8fa09b0
 +        return groupdataentity;
 +    }
 +}
-\ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
 new file mode 100644
-index 0000000..b053cc4
+index 0000000..e804f71
 --- /dev/null
 +++ b/src/main/java/net/minecraft/server/EntityVillager.java
 @@ -0,0 +1,551 @@
@@ -421,107 +419,107 @@ index 0000000..b053cc4
 +
 +        label50:
 +        switch (this.getProfession()) {
-+            case 0:
-+                a(merchantrecipelist, Items.WHEAT, this.random, this.p(0.9F));
-+                a(merchantrecipelist, Item.getItemOf(Blocks.WOOL), this.random, this.p(0.5F));
-+                a(merchantrecipelist, Items.RAW_CHICKEN, this.random, this.p(0.5F));
-+                a(merchantrecipelist, Items.COOKED_FISH, this.random, this.p(0.4F));
-+                b(merchantrecipelist, Items.BREAD, this.random, this.p(0.9F));
-+                b(merchantrecipelist, Items.MELON, this.random, this.p(0.3F));
-+                b(merchantrecipelist, Items.APPLE, this.random, this.p(0.3F));
-+                b(merchantrecipelist, Items.COOKIE, this.random, this.p(0.3F));
-+                b(merchantrecipelist, Items.SHEARS, this.random, this.p(0.3F));
-+                b(merchantrecipelist, Items.FLINT_AND_STEEL, this.random, this.p(0.3F));
-+                b(merchantrecipelist, Items.COOKED_CHICKEN, this.random, this.p(0.3F));
-+                b(merchantrecipelist, Items.ARROW, this.random, this.p(0.5F));
-+                if (this.random.nextFloat() < this.p(0.5F)) {
-+                    merchantrecipelist.add(new MerchantRecipe(new ItemStack(Blocks.GRAVEL, 10), new ItemStack(Items.EMERALD), new ItemStack(Items.FLINT, 4 + this.random.nextInt(2), 0)));
-+                }
-+                break;
++        case 0:
++            a(merchantrecipelist, Items.WHEAT, this.random, this.p(0.9F));
++            a(merchantrecipelist, Item.getItemOf(Blocks.WOOL), this.random, this.p(0.5F));
++            a(merchantrecipelist, Items.RAW_CHICKEN, this.random, this.p(0.5F));
++            a(merchantrecipelist, Items.COOKED_FISH, this.random, this.p(0.4F));
++            b(merchantrecipelist, Items.BREAD, this.random, this.p(0.9F));
++            b(merchantrecipelist, Items.MELON, this.random, this.p(0.3F));
++            b(merchantrecipelist, Items.APPLE, this.random, this.p(0.3F));
++            b(merchantrecipelist, Items.COOKIE, this.random, this.p(0.3F));
++            b(merchantrecipelist, Items.SHEARS, this.random, this.p(0.3F));
++            b(merchantrecipelist, Items.FLINT_AND_STEEL, this.random, this.p(0.3F));
++            b(merchantrecipelist, Items.COOKED_CHICKEN, this.random, this.p(0.3F));
++            b(merchantrecipelist, Items.ARROW, this.random, this.p(0.5F));
++            if (this.random.nextFloat() < this.p(0.5F)) {
++                merchantrecipelist.add(new MerchantRecipe(new ItemStack(Blocks.GRAVEL, 10), new ItemStack(Items.EMERALD), new ItemStack(Items.FLINT, 4 + this.random.nextInt(2), 0)));
++            }
++            break;
 +
-+            case 1:
-+                a(merchantrecipelist, Items.PAPER, this.random, this.p(0.8F));
-+                a(merchantrecipelist, Items.BOOK, this.random, this.p(0.8F));
-+                a(merchantrecipelist, Items.WRITTEN_BOOK, this.random, this.p(0.3F));
-+                b(merchantrecipelist, Item.getItemOf(Blocks.BOOKSHELF), this.random, this.p(0.8F));
-+                b(merchantrecipelist, Item.getItemOf(Blocks.GLASS), this.random, this.p(0.2F));
-+                b(merchantrecipelist, Items.COMPASS, this.random, this.p(0.2F));
-+                b(merchantrecipelist, Items.WATCH, this.random, this.p(0.2F));
-+                if (this.random.nextFloat() < this.p(0.07F)) {
-+                    Enchantment enchantment = Enchantment.c[this.random.nextInt(Enchantment.c.length)];
-+                    int k = MathHelper.nextInt(this.random, enchantment.getStartLevel(), enchantment.getMaxLevel());
-+                    ItemStack itemstack = Items.ENCHANTED_BOOK.a(new EnchantmentInstance(enchantment, k));
++        case 1:
++            a(merchantrecipelist, Items.PAPER, this.random, this.p(0.8F));
++            a(merchantrecipelist, Items.BOOK, this.random, this.p(0.8F));
++            a(merchantrecipelist, Items.WRITTEN_BOOK, this.random, this.p(0.3F));
++            b(merchantrecipelist, Item.getItemOf(Blocks.BOOKSHELF), this.random, this.p(0.8F));
++            b(merchantrecipelist, Item.getItemOf(Blocks.GLASS), this.random, this.p(0.2F));
++            b(merchantrecipelist, Items.COMPASS, this.random, this.p(0.2F));
++            b(merchantrecipelist, Items.WATCH, this.random, this.p(0.2F));
++            if (this.random.nextFloat() < this.p(0.07F)) {
++                Enchantment enchantment = Enchantment.c[this.random.nextInt(Enchantment.c.length)];
++                int k = MathHelper.nextInt(this.random, enchantment.getStartLevel(), enchantment.getMaxLevel());
++                ItemStack itemstack = Items.ENCHANTED_BOOK.a(new EnchantmentInstance(enchantment, k));
 +
-+                    j = 2 + this.random.nextInt(5 + k * 10) + 3 * k;
-+                    merchantrecipelist.add(new MerchantRecipe(new ItemStack(Items.BOOK), new ItemStack(Items.EMERALD, j), itemstack));
-+                }
-+                break;
++                j = 2 + this.random.nextInt(5 + k * 10) + 3 * k;
++                merchantrecipelist.add(new MerchantRecipe(new ItemStack(Items.BOOK), new ItemStack(Items.EMERALD, j), itemstack));
++            }
++            break;
 +
-+            case 2:
-+                b(merchantrecipelist, Items.EYE_OF_ENDER, this.random, this.p(0.3F));
-+                b(merchantrecipelist, Items.EXP_BOTTLE, this.random, this.p(0.2F));
-+                b(merchantrecipelist, Items.REDSTONE, this.random, this.p(0.4F));
-+                b(merchantrecipelist, Item.getItemOf(Blocks.GLOWSTONE), this.random, this.p(0.3F));
-+                Item[] aitem = new Item[] { Items.IRON_SWORD, Items.DIAMOND_SWORD, Items.IRON_CHESTPLATE, Items.DIAMOND_CHESTPLATE, Items.IRON_AXE, Items.DIAMOND_AXE, Items.IRON_PICKAXE, Items.DIAMOND_PICKAXE};
-+                Item[] aitem1 = aitem;
-+                int l = aitem.length;
++        case 2:
++            b(merchantrecipelist, Items.EYE_OF_ENDER, this.random, this.p(0.3F));
++            b(merchantrecipelist, Items.EXP_BOTTLE, this.random, this.p(0.2F));
++            b(merchantrecipelist, Items.REDSTONE, this.random, this.p(0.4F));
++            b(merchantrecipelist, Item.getItemOf(Blocks.GLOWSTONE), this.random, this.p(0.3F));
++            Item[] aitem = new Item[] { Items.IRON_SWORD, Items.DIAMOND_SWORD, Items.IRON_CHESTPLATE, Items.DIAMOND_CHESTPLATE, Items.IRON_AXE, Items.DIAMOND_AXE, Items.IRON_PICKAXE, Items.DIAMOND_PICKAXE};
++            Item[] aitem1 = aitem;
++            int l = aitem.length;
 +
-+                j = 0;
++            j = 0;
 +
-+                while (true) {
-+                    if (j >= l) {
-+                        break label50;
-+                    }
-+
-+                    Item item = aitem1[j];
-+
-+                    if (this.random.nextFloat() < this.p(0.05F)) {
-+                        merchantrecipelist.add(new MerchantRecipe(new ItemStack(item, 1, 0), new ItemStack(Items.EMERALD, 2 + this.random.nextInt(3), 0), EnchantmentManager.a(this.random, new ItemStack(item, 1, 0), 5 + this.random.nextInt(15))));
-+                    }
-+
-+                    ++j;
++            while (true) {
++                if (j >= l) {
++                    break label50;
 +                }
 +
-+            case 3:
-+                a(merchantrecipelist, Items.COAL, this.random, this.p(0.7F));
-+                a(merchantrecipelist, Items.IRON_INGOT, this.random, this.p(0.5F));
-+                a(merchantrecipelist, Items.GOLD_INGOT, this.random, this.p(0.5F));
-+                a(merchantrecipelist, Items.DIAMOND, this.random, this.p(0.5F));
-+                b(merchantrecipelist, Items.IRON_SWORD, this.random, this.p(0.5F));
-+                b(merchantrecipelist, Items.DIAMOND_SWORD, this.random, this.p(0.5F));
-+                b(merchantrecipelist, Items.IRON_AXE, this.random, this.p(0.3F));
-+                b(merchantrecipelist, Items.DIAMOND_AXE, this.random, this.p(0.3F));
-+                b(merchantrecipelist, Items.IRON_PICKAXE, this.random, this.p(0.5F));
-+                b(merchantrecipelist, Items.DIAMOND_PICKAXE, this.random, this.p(0.5F));
-+                b(merchantrecipelist, Items.IRON_SPADE, this.random, this.p(0.2F));
-+                b(merchantrecipelist, Items.DIAMOND_SPADE, this.random, this.p(0.2F));
-+                b(merchantrecipelist, Items.IRON_HOE, this.random, this.p(0.2F));
-+                b(merchantrecipelist, Items.DIAMOND_HOE, this.random, this.p(0.2F));
-+                b(merchantrecipelist, Items.IRON_BOOTS, this.random, this.p(0.2F));
-+                b(merchantrecipelist, Items.DIAMOND_BOOTS, this.random, this.p(0.2F));
-+                b(merchantrecipelist, Items.IRON_HELMET, this.random, this.p(0.2F));
-+                b(merchantrecipelist, Items.DIAMOND_HELMET, this.random, this.p(0.2F));
-+                b(merchantrecipelist, Items.IRON_CHESTPLATE, this.random, this.p(0.2F));
-+                b(merchantrecipelist, Items.DIAMOND_CHESTPLATE, this.random, this.p(0.2F));
-+                b(merchantrecipelist, Items.IRON_LEGGINGS, this.random, this.p(0.2F));
-+                b(merchantrecipelist, Items.DIAMOND_LEGGINGS, this.random, this.p(0.2F));
-+                b(merchantrecipelist, Items.CHAINMAIL_BOOTS, this.random, this.p(0.1F));
-+                b(merchantrecipelist, Items.CHAINMAIL_HELMET, this.random, this.p(0.1F));
-+                b(merchantrecipelist, Items.CHAINMAIL_CHESTPLATE, this.random, this.p(0.1F));
-+                b(merchantrecipelist, Items.CHAINMAIL_LEGGINGS, this.random, this.p(0.1F));
-+                break;
++                Item item = aitem1[j];
 +
-+            case 4:
-+                a(merchantrecipelist, Items.COAL, this.random, this.p(0.7F));
-+                a(merchantrecipelist, Items.PORK, this.random, this.p(0.5F));
-+                a(merchantrecipelist, Items.RAW_BEEF, this.random, this.p(0.5F));
-+                b(merchantrecipelist, Items.SADDLE, this.random, this.p(0.1F));
-+                b(merchantrecipelist, Items.LEATHER_CHESTPLATE, this.random, this.p(0.3F));
-+                b(merchantrecipelist, Items.LEATHER_BOOTS, this.random, this.p(0.3F));
-+                b(merchantrecipelist, Items.LEATHER_HELMET, this.random, this.p(0.3F));
-+                b(merchantrecipelist, Items.LEATHER_LEGGINGS, this.random, this.p(0.3F));
-+                b(merchantrecipelist, Items.GRILLED_PORK, this.random, this.p(0.3F));
-+                b(merchantrecipelist, Items.COOKED_BEEF, this.random, this.p(0.3F));
++                if (this.random.nextFloat() < this.p(0.05F)) {
++                    merchantrecipelist.add(new MerchantRecipe(new ItemStack(item, 1, 0), new ItemStack(Items.EMERALD, 2 + this.random.nextInt(3), 0), EnchantmentManager.a(this.random, new ItemStack(item, 1, 0), 5 + this.random.nextInt(15))));
++                }
++
++                ++j;
++            }
++
++        case 3:
++            a(merchantrecipelist, Items.COAL, this.random, this.p(0.7F));
++            a(merchantrecipelist, Items.IRON_INGOT, this.random, this.p(0.5F));
++            a(merchantrecipelist, Items.GOLD_INGOT, this.random, this.p(0.5F));
++            a(merchantrecipelist, Items.DIAMOND, this.random, this.p(0.5F));
++            b(merchantrecipelist, Items.IRON_SWORD, this.random, this.p(0.5F));
++            b(merchantrecipelist, Items.DIAMOND_SWORD, this.random, this.p(0.5F));
++            b(merchantrecipelist, Items.IRON_AXE, this.random, this.p(0.3F));
++            b(merchantrecipelist, Items.DIAMOND_AXE, this.random, this.p(0.3F));
++            b(merchantrecipelist, Items.IRON_PICKAXE, this.random, this.p(0.5F));
++            b(merchantrecipelist, Items.DIAMOND_PICKAXE, this.random, this.p(0.5F));
++            b(merchantrecipelist, Items.IRON_SPADE, this.random, this.p(0.2F));
++            b(merchantrecipelist, Items.DIAMOND_SPADE, this.random, this.p(0.2F));
++            b(merchantrecipelist, Items.IRON_HOE, this.random, this.p(0.2F));
++            b(merchantrecipelist, Items.DIAMOND_HOE, this.random, this.p(0.2F));
++            b(merchantrecipelist, Items.IRON_BOOTS, this.random, this.p(0.2F));
++            b(merchantrecipelist, Items.DIAMOND_BOOTS, this.random, this.p(0.2F));
++            b(merchantrecipelist, Items.IRON_HELMET, this.random, this.p(0.2F));
++            b(merchantrecipelist, Items.DIAMOND_HELMET, this.random, this.p(0.2F));
++            b(merchantrecipelist, Items.IRON_CHESTPLATE, this.random, this.p(0.2F));
++            b(merchantrecipelist, Items.DIAMOND_CHESTPLATE, this.random, this.p(0.2F));
++            b(merchantrecipelist, Items.IRON_LEGGINGS, this.random, this.p(0.2F));
++            b(merchantrecipelist, Items.DIAMOND_LEGGINGS, this.random, this.p(0.2F));
++            b(merchantrecipelist, Items.CHAINMAIL_BOOTS, this.random, this.p(0.1F));
++            b(merchantrecipelist, Items.CHAINMAIL_HELMET, this.random, this.p(0.1F));
++            b(merchantrecipelist, Items.CHAINMAIL_CHESTPLATE, this.random, this.p(0.1F));
++            b(merchantrecipelist, Items.CHAINMAIL_LEGGINGS, this.random, this.p(0.1F));
++            break;
++
++        case 4:
++            a(merchantrecipelist, Items.COAL, this.random, this.p(0.7F));
++            a(merchantrecipelist, Items.PORK, this.random, this.p(0.5F));
++            a(merchantrecipelist, Items.RAW_BEEF, this.random, this.p(0.5F));
++            b(merchantrecipelist, Items.SADDLE, this.random, this.p(0.1F));
++            b(merchantrecipelist, Items.LEATHER_CHESTPLATE, this.random, this.p(0.3F));
++            b(merchantrecipelist, Items.LEATHER_BOOTS, this.random, this.p(0.3F));
++            b(merchantrecipelist, Items.LEATHER_HELMET, this.random, this.p(0.3F));
++            b(merchantrecipelist, Items.LEATHER_LEGGINGS, this.random, this.p(0.3F));
++            b(merchantrecipelist, Items.GRILLED_PORK, this.random, this.p(0.3F));
++            b(merchantrecipelist, Items.COOKED_BEEF, this.random, this.p(0.3F));
 +        }
 +
 +        if (merchantrecipelist.isEmpty()) {
@@ -670,10 +668,185 @@ index 0000000..b053cc4
 +        bC.put(Items.ARROW, new Tuple(Integer.valueOf(-12), Integer.valueOf(-8)));
 +    }
 +}
-\ No newline at end of file
+diff --git a/src/main/java/net/minecraft/server/EntityWitch.java b/src/main/java/net/minecraft/server/EntityWitch.java
+new file mode 100644
+index 0000000..22003a7
+--- /dev/null
++++ b/src/main/java/net/minecraft/server/EntityWitch.java
+@@ -0,0 +1,170 @@
++package net.minecraft.server;
++
++import java.util.Iterator;
++import java.util.List;
++import java.util.UUID;
++
++public class EntityWitch extends EntityMonster implements IRangedEntity {
++
++    private static final UUID bp = UUID.fromString("5CD17E52-A79A-43D3-A529-90FDE04B181E");
++    private static final AttributeModifier bq = (new AttributeModifier(bp, "Drinking speed penalty", -0.25D, 0)).a(false);
++    private static final Item[] br = new Item[] { Items.GLOWSTONE_DUST, Items.SUGAR, Items.REDSTONE, Items.SPIDER_EYE, Items.GLASS_BOTTLE, Items.SULPHUR, Items.STICK, Items.STICK};
++    private int bs;
++
++    public EntityWitch(World world) {
++        super(world);
++        this.goalSelector.a(1, new PathfinderGoalFloat(this));
++        this.goalSelector.a(2, new PathfinderGoalArrowAttack(this, 1.0D, 60, 10.0F));
++        this.goalSelector.a(2, new PathfinderGoalRandomStroll(this, 1.0D));
++        this.goalSelector.a(3, new PathfinderGoalLookAtPlayer(this, EntityHuman.class, 8.0F));
++        this.goalSelector.a(3, new PathfinderGoalRandomLookaround(this));
++        this.targetSelector.a(1, new PathfinderGoalHurtByTarget(this, false));
++        this.targetSelector.a(2, new PathfinderGoalNearestAttackableTarget(this, EntityHuman.class, 0, true));
++    }
++
++    protected void c() {
++        super.c();
++        this.getDataWatcher().a(21, Byte.valueOf((byte) 0));
++    }
++
++    protected String t() {
++        return "mob.witch.idle";
++    }
++
++    protected String aS() {
++        return "mob.witch.hurt";
++    }
++
++    protected String aT() {
++        return "mob.witch.death";
++    }
++
++    public void a(boolean flag) {
++        this.getDataWatcher().watch(21, Byte.valueOf((byte) (flag ? 1 : 0)));
++    }
++
++    public boolean bZ() {
++        return this.getDataWatcher().getByte(21) == 1;
++    }
++
++    protected void aC() {
++        super.aC();
++        this.getAttributeInstance(GenericAttributes.a).setValue(26.0D);
++        this.getAttributeInstance(GenericAttributes.d).setValue(0.25D);
++    }
++
++    public boolean bj() {
++        return true;
++    }
++
++    public void e() {
++        if (!this.world.isStatic) {
++            if (this.bZ()) {
++                if (this.bs-- <= 0) {
++                    this.a(false);
++                    ItemStack itemstack = this.bd();
++
++                    this.setEquipment(0, (ItemStack) null);
++                    if (itemstack != null && itemstack.getItem() == Items.POTION) {
++                        List list = Items.POTION.g(itemstack);
++
++                        if (list != null) {
++                            Iterator iterator = list.iterator();
++
++                            while (iterator.hasNext()) {
++                                MobEffect mobeffect = (MobEffect) iterator.next();
++
++                                this.addEffect(new MobEffect(mobeffect));
++                            }
++                        }
++                    }
++
++                    this.getAttributeInstance(GenericAttributes.d).b(bq);
++                }
++            } else {
++                short short1 = -1;
++
++                if (this.random.nextFloat() < 0.15F && this.a(Material.WATER) && !this.hasEffect(MobEffectList.WATER_BREATHING)) {
++                    short1 = 8237;
++                } else if (this.random.nextFloat() < 0.15F && this.isBurning() && !this.hasEffect(MobEffectList.FIRE_RESISTANCE)) {
++                    short1 = 16307;
++                } else if (this.random.nextFloat() < 0.05F && this.getHealth() < this.getMaxHealth()) {
++                    short1 = 16341;
++                } else if (this.random.nextFloat() < 0.25F && this.getGoalTarget() != null && !this.hasEffect(MobEffectList.FASTER_MOVEMENT) && this.getGoalTarget().f(this) > 121.0D) {
++                    short1 = 16274;
++                } else if (this.random.nextFloat() < 0.25F && this.getGoalTarget() != null && !this.hasEffect(MobEffectList.FASTER_MOVEMENT) && this.getGoalTarget().f(this) > 121.0D) {
++                    short1 = 16274;
++                }
++
++                if (short1 > -1) {
++                    this.setEquipment(0, new ItemStack(Items.POTION, 1, short1));
++                    this.bs = this.bd().n();
++                    this.a(true);
++                    AttributeInstance attributeinstance = this.getAttributeInstance(GenericAttributes.d);
++
++                    attributeinstance.b(bq);
++                    attributeinstance.a(bq);
++                }
++            }
++
++            if (this.random.nextFloat() < 7.5E-4F) {
++                this.world.broadcastEntityEffect(this, (byte) 15);
++            }
++        }
++
++        super.e();
++    }
++
++    protected float c(DamageSource damagesource, float f) {
++        f = super.c(damagesource, f);
++        if (damagesource.getEntity() == this) {
++            f = 0.0F;
++        }
++
++        if (damagesource.s()) {
++            f = (float) ((double) f * 0.15D);
++        }
++
++        return f;
++    }
++
++    protected void dropDeathLoot(boolean flag, int i) {
++        int j = this.random.nextInt(3) + 1;
++
++        for (int k = 0; k < j; ++k) {
++            int l = this.random.nextInt(3);
++            Item item = br[this.random.nextInt(br.length)];
++
++            if (i > 0) {
++                l += this.random.nextInt(i + 1);
++            }
++
++            for (int i1 = 0; i1 < l; ++i1) {
++                this.a(item, 1);
++            }
++        }
++    }
++
++    public void a(EntityLiving entityliving, float f) {
++        if (!this.bZ()) {
++            EntityPotion entitypotion = new EntityPotion(this.world, this, 32732);
++
++            entitypotion.pitch -= -20.0F;
++            double d0 = entityliving.locX + entityliving.motX - this.locX;
++            double d1 = entityliving.locY + (double) entityliving.getHeadHeight() - 1.100000023841858D - this.locY;
++            double d2 = entityliving.locZ + entityliving.motZ - this.locZ;
++            float f1 = MathHelper.sqrt(d0 * d0 + d2 * d2);
++
++            if (f1 >= 8.0F && !entityliving.hasEffect(MobEffectList.SLOWER_MOVEMENT)) {
++                entitypotion.setPotionValue(32698);
++            } else if (entityliving.getHealth() >= 8.0F && !entityliving.hasEffect(MobEffectList.POISON)) {
++                entitypotion.setPotionValue(32660);
++            } else if (f1 <= 3.0F && !entityliving.hasEffect(MobEffectList.WEAKNESS) && this.random.nextFloat() < 0.25F) {
++                entitypotion.setPotionValue(32696);
++            }
++
++            entitypotion.shoot(d0, d1 + (double) (f1 * 0.2F), d2, 0.75F, 8.0F);
++            this.world.addEntity(entitypotion);
++        }
++    }
++}
 diff --git a/src/main/java/net/minecraft/server/ItemFish.java b/src/main/java/net/minecraft/server/ItemFish.java
 new file mode 100644
-index 0000000..28aa060
+index 0000000..2ff6c4e
 --- /dev/null
 +++ b/src/main/java/net/minecraft/server/ItemFish.java
 @@ -0,0 +1,45 @@
@@ -722,10 +895,9 @@ index 0000000..28aa060
 +        return this.getName() + "." + enumfish.b() + "." + (this.b && enumfish.i() ? "cooked" : "raw");
 +    }
 +}
-\ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/ItemFood.java b/src/main/java/net/minecraft/server/ItemFood.java
 new file mode 100644
-index 0000000..b669d61
+index 0000000..94ac37c
 --- /dev/null
 +++ b/src/main/java/net/minecraft/server/ItemFood.java
 @@ -0,0 +1,81 @@
@@ -810,10 +982,9 @@ index 0000000..b669d61
 +        return this;
 +    }
 +}
-\ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/ItemGoldenApple.java b/src/main/java/net/minecraft/server/ItemGoldenApple.java
 new file mode 100644
-index 0000000..6bab734
+index 0000000..46f4e9e
 --- /dev/null
 +++ b/src/main/java/net/minecraft/server/ItemGoldenApple.java
 @@ -0,0 +1,29 @@
@@ -846,10 +1017,9 @@ index 0000000..6bab734
 +        }
 +    }
 +}
-\ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/ItemPotion.java b/src/main/java/net/minecraft/server/ItemPotion.java
 new file mode 100644
-index 0000000..120bf1c
+index 0000000..10de4df
 --- /dev/null
 +++ b/src/main/java/net/minecraft/server/ItemPotion.java
 @@ -0,0 +1,147 @@
@@ -1000,7 +1170,6 @@ index 0000000..120bf1c
 +        }
 +    }
 +}
-\ No newline at end of file
 -- 
 1.8.5.2 (Apple Git-48)
 

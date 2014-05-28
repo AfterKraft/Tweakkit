@@ -1,11 +1,11 @@
-From 0100e21d6967c2c877d7e251c6aeb9d5cb97f4fc Mon Sep 17 00:00:00 2001
+From 21faf57a33d39ac671f40488ecc79339f2c6af9d Mon Sep 17 00:00:00 2001
 From: Gabriel Harris-Rouquette <gabizou@me.com>
 Date: Thu, 15 May 2014 01:46:14 -0700
 Subject: [PATCH] Implement EntityPotionEffectChangeEvent
 
 
 diff --git a/src/main/java/net/minecraft/server/EnchantmentWeaponDamage.java b/src/main/java/net/minecraft/server/EnchantmentWeaponDamage.java
-index c1e4143..493d1ec 100644
+index a7feb42..f88fc2e 100644
 --- a/src/main/java/net/minecraft/server/EnchantmentWeaponDamage.java
 +++ b/src/main/java/net/minecraft/server/EnchantmentWeaponDamage.java
 @@ -48,7 +48,8 @@ public class EnchantmentWeaponDamage extends Enchantment {
@@ -19,7 +19,7 @@ index c1e4143..493d1ec 100644
          }
      }
 diff --git a/src/main/java/net/minecraft/server/EntityCaveSpider.java b/src/main/java/net/minecraft/server/EntityCaveSpider.java
-index 8fa09b0..3a40fa3 100644
+index 9895c6f..860589a 100644
 --- a/src/main/java/net/minecraft/server/EntityCaveSpider.java
 +++ b/src/main/java/net/minecraft/server/EntityCaveSpider.java
 @@ -24,7 +24,8 @@ public class EntityCaveSpider extends EntitySpider {
@@ -33,13 +33,13 @@ index 8fa09b0..3a40fa3 100644
              }
  
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index 234d7db..868250a 100644
+index c821e78..4ebb2fe 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
-@@ -8,9 +8,12 @@ import java.util.Random;
- import java.util.UUID;
+@@ -9,9 +9,12 @@ import java.util.UUID;
  
  // CraftBukkit start
+ import java.util.ArrayList;
 +import org.apache.commons.lang.Validate; // Tweakkit
  import org.bukkit.craftbukkit.event.CraftEventFactory;
  import org.bukkit.event.entity.EntityDamageEvent;
@@ -49,7 +49,7 @@ index 234d7db..868250a 100644
  // CraftBukkit end
  
  public abstract class EntityLiving extends Entity {
-@@ -450,6 +453,8 @@ public abstract class EntityLiving extends Entity {
+@@ -452,6 +455,8 @@ public abstract class EntityLiving extends Entity {
              if (!mobeffect.tick(this)) {
                  if (!this.world.isStatic) {
                      iterator.remove();
@@ -58,7 +58,7 @@ index 234d7db..868250a 100644
                      this.b(mobeffect);
                  }
              } else if (mobeffect.getDuration() % 600 == 0) {
-@@ -511,6 +516,8 @@ public abstract class EntityLiving extends Entity {
+@@ -513,6 +518,8 @@ public abstract class EntityLiving extends Entity {
  
              if (!this.world.isStatic) {
                  iterator.remove();
@@ -67,7 +67,7 @@ index 234d7db..868250a 100644
                  this.b(mobeffect);
              }
          }
-@@ -535,6 +542,30 @@ public abstract class EntityLiving extends Entity {
+@@ -537,6 +544,29 @@ public abstract class EntityLiving extends Entity {
      }
  
      public void addEffect(MobEffect mobeffect) {
@@ -94,11 +94,10 @@ index 234d7db..868250a 100644
 +        // Update the MobEffect to reflect what Plugins do with it
 +        mobeffect = new MobEffect(bukkitEffect.getType().getId(),bukkitEffect.getDuration(),bukkitEffect.getAmplifier(),event.isAmbient());
 +        // Tweakkit end - handle how Minecraft normally handles adding Effects
-+
          if (this.d(mobeffect)) {
              if (this.effects.containsKey(Integer.valueOf(mobeffect.getEffectId()))) {
                  ((MobEffect) this.effects.get(Integer.valueOf(mobeffect.getEffectId()))).a(mobeffect);
-@@ -563,13 +594,30 @@ public abstract class EntityLiving extends Entity {
+@@ -565,12 +595,30 @@ public abstract class EntityLiving extends Entity {
      }
  
      public void removeEffect(int i) {
@@ -110,8 +109,8 @@ index 234d7db..868250a 100644
              this.b(mobeffect);
          }
 +        // Tweakkit - end */
-     }
- 
++    }
++
 +    // Tweakkit start - handle remove effect
 +    public void removeEffect(int i, EntityPotionEffectChangeEvent.Cause cause) {
 +        MobEffect mobeffect = (MobEffect) this.effects.remove(Integer.valueOf(i));
@@ -122,13 +121,13 @@ index 234d7db..868250a 100644
 +        PotionEffect bukkitEffect = event.getEffect();
 +        mobeffect = new MobEffect(bukkitEffect.getType().getId(),bukkitEffect.getDuration(),bukkitEffect.getAmplifier(),event.isAmbient());
 +        this.b(mobeffect);
-+    }
+     }
 +    // Tweakkit end
 +
 +
+ 
      protected void a(MobEffect mobeffect) {
          this.updateEffects = true;
-         if (!this.world.isStatic) {
 diff --git a/src/main/java/net/minecraft/server/EntityPotion.java b/src/main/java/net/minecraft/server/EntityPotion.java
 index 69db29f..c47c3dd 100644
 --- a/src/main/java/net/minecraft/server/EntityPotion.java
@@ -144,7 +143,7 @@ index 69db29f..c47c3dd 100644
                                  }
                              }
 diff --git a/src/main/java/net/minecraft/server/EntitySkeleton.java b/src/main/java/net/minecraft/server/EntitySkeleton.java
-index fd3fd3b..931ebda 100644
+index 47bbff1..0c1ec8d 100644
 --- a/src/main/java/net/minecraft/server/EntitySkeleton.java
 +++ b/src/main/java/net/minecraft/server/EntitySkeleton.java
 @@ -57,7 +57,8 @@ public class EntitySkeleton extends EntityMonster implements IRangedEntity {
@@ -158,10 +157,10 @@ index fd3fd3b..931ebda 100644
  
              return true;
 diff --git a/src/main/java/net/minecraft/server/EntitySpider.java b/src/main/java/net/minecraft/server/EntitySpider.java
-index 67a23f6..8730c20 100644
+index 8d5bff2..3ad5033 100644
 --- a/src/main/java/net/minecraft/server/EntitySpider.java
 +++ b/src/main/java/net/minecraft/server/EntitySpider.java
-@@ -171,7 +171,8 @@ public class EntitySpider extends EntityMonster {
+@@ -153,7 +153,8 @@ public class EntitySpider extends EntityMonster {
              int i = ((GroupDataSpider) object).a;
  
              if (i > 0 && MobEffectList.byId[i] != null) {
@@ -172,7 +171,7 @@ index 67a23f6..8730c20 100644
          }
  
 diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
-index 5f1c21f..c58e9aa 100644
+index e804f71..48c3c88 100644
 --- a/src/main/java/net/minecraft/server/EntityVillager.java
 +++ b/src/main/java/net/minecraft/server/EntityVillager.java
 @@ -101,7 +101,8 @@ public class EntityVillager extends EntityAgeable implements IMerchant, NPC {
@@ -186,7 +185,7 @@ index 5f1c21f..c58e9aa 100644
          }
  
 diff --git a/src/main/java/net/minecraft/server/EntityWitch.java b/src/main/java/net/minecraft/server/EntityWitch.java
-index 0f5126a..c34798b 100644
+index 22003a7..12b8f4a 100644
 --- a/src/main/java/net/minecraft/server/EntityWitch.java
 +++ b/src/main/java/net/minecraft/server/EntityWitch.java
 @@ -74,7 +74,8 @@ public class EntityWitch extends EntityMonster implements IRangedEntity {
@@ -214,7 +213,7 @@ index b8c3cef..80d183f 100644
                  }
              }
 diff --git a/src/main/java/net/minecraft/server/EntityZombie.java b/src/main/java/net/minecraft/server/EntityZombie.java
-index 1eaac63..5d8346f 100644
+index 6cb5b14..f1e7e75 100644
 --- a/src/main/java/net/minecraft/server/EntityZombie.java
 +++ b/src/main/java/net/minecraft/server/EntityZombie.java
 @@ -11,6 +11,7 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
@@ -225,7 +224,7 @@ index 1eaac63..5d8346f 100644
  //CraftBukkit end
  
  public class EntityZombie extends EntityMonster {
-@@ -446,8 +447,10 @@ public class EntityZombie extends EntityMonster {
+@@ -449,8 +450,10 @@ public class EntityZombie extends EntityMonster {
      protected void a(int i) {
          this.bt = i;
          this.getDataWatcher().watch(14, Byte.valueOf((byte) 1));
@@ -238,7 +237,7 @@ index 1eaac63..5d8346f 100644
          this.world.broadcastEntityEffect(this, (byte) 16);
      }
  
-@@ -471,7 +474,8 @@ public class EntityZombie extends EntityMonster {
+@@ -474,7 +477,8 @@ public class EntityZombie extends EntityMonster {
  
          this.world.kill(this);
          this.world.addEntity(entityvillager, CreatureSpawnEvent.SpawnReason.CURED); // CraftBukkit - add SpawnReason
@@ -249,7 +248,7 @@ index 1eaac63..5d8346f 100644
      }
  
 diff --git a/src/main/java/net/minecraft/server/ItemFish.java b/src/main/java/net/minecraft/server/ItemFish.java
-index 28aa060..895ff96 100644
+index 2ff6c4e..28a127f 100644
 --- a/src/main/java/net/minecraft/server/ItemFish.java
 +++ b/src/main/java/net/minecraft/server/ItemFish.java
 @@ -1,5 +1,8 @@
@@ -281,7 +280,7 @@ index 28aa060..895ff96 100644
  
      public String a(ItemStack itemstack) {
 diff --git a/src/main/java/net/minecraft/server/ItemFood.java b/src/main/java/net/minecraft/server/ItemFood.java
-index b669d61..fd2e61f 100644
+index 94ac37c..42cc919 100644
 --- a/src/main/java/net/minecraft/server/ItemFood.java
 +++ b/src/main/java/net/minecraft/server/ItemFood.java
 @@ -34,7 +34,8 @@ public class ItemFood extends Item {
@@ -295,7 +294,7 @@ index b669d61..fd2e61f 100644
      }
  
 diff --git a/src/main/java/net/minecraft/server/ItemGoldenApple.java b/src/main/java/net/minecraft/server/ItemGoldenApple.java
-index 6bab734..6b2b80e 100644
+index 46f4e9e..b2e7f6b 100644
 --- a/src/main/java/net/minecraft/server/ItemGoldenApple.java
 +++ b/src/main/java/net/minecraft/server/ItemGoldenApple.java
 @@ -1,5 +1,8 @@
@@ -330,7 +329,7 @@ index 6bab734..6b2b80e 100644
          } else {
              super.c(itemstack, world, entityhuman);
 diff --git a/src/main/java/net/minecraft/server/ItemPotion.java b/src/main/java/net/minecraft/server/ItemPotion.java
-index 120bf1c..be53061 100644
+index 10de4df..cc78f29 100644
 --- a/src/main/java/net/minecraft/server/ItemPotion.java
 +++ b/src/main/java/net/minecraft/server/ItemPotion.java
 @@ -71,7 +71,8 @@ public class ItemPotion extends Item {
