@@ -1,0 +1,432 @@
+From 3bec2614ae458d14db4f819cc504a02ba8726e1b Mon Sep 17 00:00:00 2001
+From: Gabriel Harris-Rouquette <gabizou@me.com>
+Date: Wed, 28 May 2014 09:29:14 -0700
+Subject: [PATCH] Add TradingAPI
+
+
+diff --git a/src/main/java/com/afterkraft/entity/Merchant.java b/src/main/java/com/afterkraft/entity/Merchant.java
+new file mode 100644
+index 0000000..af5293b
+--- /dev/null
++++ b/src/main/java/com/afterkraft/entity/Merchant.java
+@@ -0,0 +1,56 @@
++package com.afterkraft.entity;
++
++import java.util.List;
++
++import org.bukkit.entity.Creature;
++import org.bukkit.entity.Player;
++
++import com.afterkraft.merchant.TradeOffer;
++
++/**
++ * Represents a LivingEntity that can trade with a Player
++ */
++public interface Merchant extends Creature {
++
++    /**
++     * Tell this merchant to trade with the designated player.
++     * It will open a trading gui on the player's client.
++     *
++     * @param player to trade with
++     * @return true if this Merchant wasn't already trading with another player
++     */
++    public boolean setTradingPlayer(Player player);
++
++    /**
++     * Get the player currently trading with this merchant.
++     *
++     * @return the player currently trading, if not null
++     */
++    public Player getTradingPlayer();
++
++    /**
++     * Returns an unmodifiable list of {@link com.afterkraft.merchant.TradeOffer}s
++     * this Merchant has to offer. The list will always update
++     * according to the current state of the Merchant.
++     *
++     * @return the list of MerchantRecipes this merchant has to offer
++     */
++    public List<TradeOffer> getOffers();
++
++    /**
++     * Add the given TradeOffer to this merchant's list of
++     * offers.
++     *
++     * @param offer to add
++     */
++    public void addOffer(TradeOffer offer);
++
++    /**
++     * Remove the offer if it is contained within the list of
++     * offers by this merchant.
++     *
++     * @param offer to remove
++     */
++    public boolean removeOffer(TradeOffer offer);
++
++}
+diff --git a/src/main/java/com/afterkraft/event/merchant/MerchantAddOfferEvent.java b/src/main/java/com/afterkraft/event/merchant/MerchantAddOfferEvent.java
+new file mode 100644
+index 0000000..d62ae2c
+--- /dev/null
++++ b/src/main/java/com/afterkraft/event/merchant/MerchantAddOfferEvent.java
+@@ -0,0 +1,55 @@
++package com.afterkraft.event.merchant;
++
++import java.util.Collections;
++import java.util.List;
++
++import org.bukkit.event.Cancellable;
++import org.bukkit.event.HandlerList;
++
++import com.afterkraft.entity.Merchant;
++import com.afterkraft.merchant.TradeOffer;
++
++public class MerchantAddOfferEvent extends MerchantEvent implements Cancellable {
++    private static final HandlerList handlers = new HandlerList();
++
++    private List<TradeOffer> offers;
++    private TradeOffer offerToAdd;
++    private boolean cancelled = false;
++
++    public MerchantAddOfferEvent(Merchant merchant, List<TradeOffer> currentOffers, TradeOffer toAdd) {
++        super(merchant);
++        this.offers = currentOffers;
++        this.offerToAdd = toAdd;
++    }
++
++    public List<TradeOffer> getCurrentOffers() {
++        return Collections.unmodifiableList(this.offers);
++    }
++
++    public TradeOffer getOfferToAdd() {
++        return this.offerToAdd;
++    }
++
++    public void setOfferToAdd(TradeOffer recipe) {
++        this.offerToAdd = recipe;
++    }
++
++    @Override
++    public HandlerList getHandlers() {
++        return handlers;
++    }
++
++    public HandlerList getHandlerList() {
++        return handlers;
++    }
++
++    @Override
++    public boolean isCancelled() {
++        return this.cancelled;
++    }
++
++    @Override
++    public void setCancelled(boolean cancel) {
++        this.cancelled = cancel;
++    }
++}
+diff --git a/src/main/java/com/afterkraft/event/merchant/MerchantEvent.java b/src/main/java/com/afterkraft/event/merchant/MerchantEvent.java
+new file mode 100644
+index 0000000..54d284d
+--- /dev/null
++++ b/src/main/java/com/afterkraft/event/merchant/MerchantEvent.java
+@@ -0,0 +1,19 @@
++package com.afterkraft.event.merchant;
++
++import org.bukkit.event.Event;
++
++import com.afterkraft.entity.Merchant;
++
++public abstract class MerchantEvent extends Event {
++
++    protected Merchant merchant;
++
++    MerchantEvent(Merchant merchant) {
++        this.merchant = merchant;
++    }
++
++    public Merchant getMerchant() {
++        return this.merchant;
++    }
++
++}
+diff --git a/src/main/java/com/afterkraft/event/merchant/MerchantRemoveOfferEvent.java b/src/main/java/com/afterkraft/event/merchant/MerchantRemoveOfferEvent.java
+new file mode 100644
+index 0000000..5e0a9f1
+--- /dev/null
++++ b/src/main/java/com/afterkraft/event/merchant/MerchantRemoveOfferEvent.java
+@@ -0,0 +1,55 @@
++package com.afterkraft.event.merchant;
++
++import java.util.Collections;
++import java.util.List;
++
++import org.bukkit.event.Cancellable;
++import org.bukkit.event.HandlerList;
++
++import com.afterkraft.entity.Merchant;
++import com.afterkraft.merchant.TradeOffer;
++
++public class MerchantRemoveOfferEvent extends MerchantEvent implements Cancellable {
++    private static final HandlerList handlers = new HandlerList();
++
++    private List<TradeOffer> offers;
++    private TradeOffer offerToRemove;
++    private boolean cancelled = false;
++
++    public MerchantRemoveOfferEvent(Merchant merchant, List<TradeOffer> currentRecipes, TradeOffer toRemove) {
++        super(merchant);
++        this.offers = currentRecipes;
++        this.offerToRemove = toRemove;
++    }
++
++    public List<TradeOffer> getcurrentOffers() {
++        return Collections.unmodifiableList(this.offers);
++    }
++
++    public TradeOffer getOfferToRemove() {
++        return this.offerToRemove;
++    }
++
++    public void setOfferToRemove(TradeOffer offer) {
++        this.offerToRemove = offer;
++    }
++
++    @Override
++    public HandlerList getHandlers() {
++        return handlers;
++    }
++
++    public HandlerList getHandlerList() {
++        return handlers;
++    }
++
++    @Override
++    public boolean isCancelled() {
++        return this.cancelled;
++    }
++
++    @Override
++    public void setCancelled(boolean cancel) {
++        this.cancelled = cancel;
++    }
++}
+diff --git a/src/main/java/com/afterkraft/event/merchant/MerchantTradeEvent.java b/src/main/java/com/afterkraft/event/merchant/MerchantTradeEvent.java
+new file mode 100644
+index 0000000..1311a6a
+--- /dev/null
++++ b/src/main/java/com/afterkraft/event/merchant/MerchantTradeEvent.java
+@@ -0,0 +1,63 @@
++package com.afterkraft.event.merchant;
++
++import java.util.Collections;
++import java.util.List;
++
++import com.google.common.collect.ImmutableList;
++
++import org.bukkit.entity.Player;
++import org.bukkit.event.HandlerList;
++
++import com.afterkraft.entity.Merchant;
++import com.afterkraft.merchant.TradeOffer;
++
++public class MerchantTradeEvent extends MerchantEvent {
++    private static final HandlerList handlers = new HandlerList();
++
++    private Player player;
++    private final List<TradeOffer> offers;
++    private List<TradeOffer> newOffers;
++    private boolean modified = false;
++
++    public MerchantTradeEvent(Merchant merchant, Player player, List<TradeOffer> offers) {
++        super(merchant);
++        this.player = player;
++        this.offers = ImmutableList.copyOf(offers);
++        this.newOffers = offers;
++    }
++
++    public Player getTradingPlayer() {
++        return this.player;
++    }
++
++    public List<TradeOffer> getOffers() {
++        return ImmutableList.copyOf(newOffers);
++    }
++
++    public void addOffer(TradeOffer offer) {
++        if (offer != null) {
++            newOffers.add(offer);
++            modified = true;
++        }
++    }
++
++    public void removeOffer(TradeOffer offer) {
++        if (offer != null) {
++            newOffers.remove(offer);
++            modified = true;
++        }
++    }
++
++    public boolean wereOffersModified() {
++        return modified;
++    }
++
++    @Override
++    public HandlerList getHandlers() {
++        return handlers;
++    }
++
++    public static HandlerList getHandlerList() {
++        return handlers;
++    }
++}
+diff --git a/src/main/java/com/afterkraft/merchant/TradeOffer.java b/src/main/java/com/afterkraft/merchant/TradeOffer.java
+new file mode 100644
+index 0000000..d08d400
+--- /dev/null
++++ b/src/main/java/com/afterkraft/merchant/TradeOffer.java
+@@ -0,0 +1,122 @@
++package com.afterkraft.merchant;
++
++import org.bukkit.Material;
++import org.bukkit.Utility;
++import org.bukkit.inventory.ItemStack;
++
++public class TradeOffer implements Cloneable {
++
++    private ItemStack firstItem;
++    private ItemStack secondItem;
++    private ItemStack resultingOffer;
++    private int maxUses;
++    private int uses = 0;
++    protected TradeType type = TradeType.PLUGIN_ADDED;
++
++    @Utility
++    protected TradeOffer() {
++
++    }
++
++    public TradeOffer(ItemStack firstItem, ItemStack offeringItem) {
++        this(firstItem, null, offeringItem, 7);
++    }
++
++    public TradeOffer(ItemStack firstItem, ItemStack secondItem, ItemStack resultingOffer) {
++        this(firstItem, secondItem, resultingOffer, 7);
++    }
++
++    public TradeOffer(ItemStack firstItem, ItemStack secondItem, ItemStack resultingOffer, int maxUses) {
++        this.firstItem = firstItem;
++        this.secondItem = secondItem;
++        this.resultingOffer = resultingOffer;
++        this.maxUses = maxUses;
++        type = TradeType.PLUGIN_ADDED;
++    }
++
++    public ItemStack getFirstItem() {
++        return this.firstItem.clone();
++    }
++
++    public void setFirstItem(ItemStack firstItem) {
++        this.firstItem = firstItem;
++    }
++
++    public ItemStack getSecondItem() {
++        return this.secondItem != null ? this.secondItem.clone() : null;
++    }
++
++    public void setSecondItem(ItemStack secondItem) {
++        this.secondItem = secondItem;
++    }
++
++    public ItemStack getResultingOffer() {
++        return this.resultingOffer.clone();
++    }
++
++    public void setResultingOffer(ItemStack item) {
++        this.resultingOffer = item;
++    }
++
++    public boolean hasSecondItem() {
++        return this.secondItem != null && this.secondItem.getType() != Material.AIR;
++    }
++
++    public int getUses() {
++        return this.uses;
++    }
++
++    public int useOffer() {
++        return ++this.uses;
++    }
++
++    public void setUses(int i) {
++        this.uses = i;
++    }
++
++    public int getMaxUses() {
++        return this.maxUses;
++    }
++
++    public void setMaxUses(int i) {
++        this.maxUses = i;
++    }
++
++    public int increaseMaxUses(int i) {
++        return maxUses += i;
++    }
++
++    public boolean hasOfferExpired() {
++        return this.uses >= this.maxUses;
++    }
++
++    public TradeType getTradeType() {
++        return this.type;
++    }
++
++    @Override
++    public TradeOffer clone() {
++        try {
++            TradeOffer trade = (TradeOffer) super.clone();
++
++            if (this.firstItem != null) {
++                trade.firstItem = this.firstItem.clone();
++            }
++            if (this.secondItem != null) {
++                trade.secondItem = this.secondItem.clone();
++            }
++            if (this.resultingOffer != null) {
++                trade.resultingOffer = this.resultingOffer.clone();
++            }
++            return trade;
++        } catch (CloneNotSupportedException e) {
++            throw new Error(e);
++        }
++    }
++
++
++    public enum TradeType {
++        VANILLA,
++        PLUGIN_ADDED
++    }
++}
+diff --git a/src/main/java/org/bukkit/entity/Villager.java b/src/main/java/org/bukkit/entity/Villager.java
+index 51035c9..0f04879 100644
+--- a/src/main/java/org/bukkit/entity/Villager.java
++++ b/src/main/java/org/bukkit/entity/Villager.java
+@@ -1,9 +1,11 @@
+ package org.bukkit.entity;
+ 
++import com.afterkraft.entity.Merchant; // Tweakkit
++
+ /**
+  * Represents a villager NPC
+  */
+-public interface Villager extends Ageable, NPC {
++public interface Villager extends Ageable, NPC, Merchant {
+ 
+     /**
+      * Gets the current profession of this villager.
+-- 
+1.8.5.2 (Apple Git-48)
+

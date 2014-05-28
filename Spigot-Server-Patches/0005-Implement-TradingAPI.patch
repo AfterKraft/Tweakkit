@@ -1,0 +1,560 @@
+From a4e4742aa98fd0b34ae91d3d07ab58d773b019e1 Mon Sep 17 00:00:00 2001
+From: Gabriel Harris-Rouquette <gabizou@me.com>
+Date: Wed, 28 May 2014 12:08:26 -0700
+Subject: [PATCH] Implement TradingAPI
+
+
+diff --git a/src/main/java/com/afterkraft/merchant/CraftTradeOffer.java b/src/main/java/com/afterkraft/merchant/CraftTradeOffer.java
+new file mode 100644
+index 0000000..bb94b7d
+--- /dev/null
++++ b/src/main/java/com/afterkraft/merchant/CraftTradeOffer.java
+@@ -0,0 +1,161 @@
++package com.afterkraft.merchant;
++
++import net.minecraft.server.MerchantRecipe;
++import net.minecraft.server.NBTTagCompound;
++import org.bukkit.craftbukkit.inventory.CraftItemStack;
++
++import org.bukkit.inventory.ItemStack;
++
++public class CraftTradeOffer extends TradeOffer {
++
++    public static MerchantRecipe asNMSCopy(TradeOffer original) {
++        if (original instanceof CraftTradeOffer) {
++            CraftTradeOffer trade = (CraftTradeOffer) original;
++            return trade.handle == null ? null : trade.handle.cloneTrade();
++        }
++        if (original == null || original.getResultingOffer() == null) {
++            return null;
++        }
++
++        MerchantRecipe recipe = new MerchantRecipe(CraftItemStack.asNMSCopy(original.getFirstItem()), CraftItemStack.asNMSCopy(original.getSecondItem()), CraftItemStack.asNMSCopy(original.getResultingOffer()));
++        recipe.type = original.type;
++        recipe.maxUses = original.getMaxUses();
++        return recipe;
++    }
++
++    public static MerchantRecipe copyNMSTrade(MerchantRecipe original) {
++        return original.cloneTrade();
++    }
++
++    public static TradeOffer asBukkitCopy(MerchantRecipe original) {
++        if (original == null) {
++            return null;
++        }
++        return  new TradeOffer(CraftItemStack.asBukkitCopy(original.getBuyItem1()), CraftItemStack.asBukkitCopy(original.getBuyItem2()), CraftItemStack.asBukkitCopy(original.getBuyItem3()), original.maxUses);
++    }
++
++    public static CraftTradeOffer asCraftMirror(MerchantRecipe original) {
++        return new CraftTradeOffer(original);
++    }
++
++    public static CraftTradeOffer asCraftCopy(TradeOffer original) {
++        if (original instanceof CraftTradeOffer) {
++            CraftTradeOffer trade = (CraftTradeOffer) original;
++            return new CraftTradeOffer(trade.handle == null ? null : trade.handle.cloneTrade());
++        }
++        return new CraftTradeOffer(original);
++    }
++
++    public static CraftTradeOffer asNewCraftTrade(TradeOffer trade) {
++        return new CraftTradeOffer(trade);
++    }
++
++    private MerchantRecipe handle;
++
++    private CraftTradeOffer(TradeOffer trade) {
++        setFirstItem(trade.getFirstItem());
++        setSecondItem(trade.getSecondItem());
++        setResultingOffer(trade.getResultingOffer());
++        setMaxUses(trade.getMaxUses());
++    }
++
++    private CraftTradeOffer(final MerchantRecipe recipe) {
++        this.handle = recipe;
++        this.type = recipe.type;
++    }
++
++    private CraftTradeOffer(final MerchantRecipe recipe, final NBTTagCompound compound) {
++        this.handle = recipe;
++        recipe.a(compound);
++    }
++
++    @Override
++    public ItemStack getFirstItem() {
++        return handle != null ? CraftItemStack.asBukkitCopy(handle.getBuyItem1()) : null;
++    }
++
++    @Override
++    public ItemStack getSecondItem() {
++        return handle != null ? CraftItemStack.asBukkitCopy(handle.getBuyItem2()) : null;
++    }
++
++    @Override
++    public ItemStack getResultingOffer() {
++        return handle != null ? CraftItemStack.asBukkitCopy(handle.getBuyItem3()) : null;
++    }
++
++    @Override
++    public boolean hasSecondItem() {
++        return handle != null && handle.hasSecondItem();
++    }
++
++    @Override
++    public int useOffer() {
++        return handle != null ? ++handle.uses : 0;
++    }
++
++    @Override
++    public int getUses() {
++        return handle != null ? handle.uses : 0;
++    }
++
++    @Override
++    public int increaseMaxUses(int i) {
++        return handle != null ? handle.maxUses += i : 0;
++    }
++
++    @Override
++    public int getMaxUses() {
++        return handle != null ? handle.maxUses : 0;
++    }
++
++    @Override
++    public void setMaxUses(int maxUses) {
++        if (handle != null && maxUses > 0) {
++            handle.maxUses = maxUses;
++        }
++    }
++
++    @Override
++    public boolean hasOfferExpired() {
++        return handle == null || handle.g();
++    }
++
++    @Override
++    public TradeType getTradeType() {
++        return handle != null ? handle.type != null ? handle.type : TradeType.VANILLA : TradeType.PLUGIN_ADDED;
++    }
++
++    public void setTradeType(TradeType type) {
++        this.type = type;
++    }
++
++    @Override
++    public CraftTradeOffer clone() {
++        CraftTradeOffer trade = (CraftTradeOffer) super.clone();
++        if (this.handle != null) {
++            trade.handle = this.handle.cloneTrade();
++        }
++        return trade;
++    }
++
++    public MerchantRecipe getHandle() {
++        return this.handle;
++    }
++
++    public void readExtraData(NBTTagCompound nbttagcompound) {
++        if (nbttagcompound.hasKey("bukkit")) {
++            NBTTagCompound data = nbttagcompound.getCompound("bukkit");
++            MerchantRecipe handle = getHandle();
++            handle.type = TradeType.valueOf(data.getString("type"));
++        }
++    }
++
++    public void setExtraData(NBTTagCompound nbttagcompound) {
++        if (!nbttagcompound.hasKey("bukkit")) {
++            nbttagcompound.set("bukkit", new NBTTagCompound());
++        }
++        NBTTagCompound data = nbttagcompound.getCompound("bukkit");
++        data.setString("type", getTradeType().toString());
++    }
++}
+\ No newline at end of file
+diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java
+index de20c6a..1459b9e 100644
+--- a/src/main/java/net/minecraft/server/EntityPlayer.java
++++ b/src/main/java/net/minecraft/server/EntityPlayer.java
+@@ -768,6 +768,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+         MerchantRecipeList merchantrecipelist = imerchant.getOffers(this);
+ 
+         if (merchantrecipelist != null) {
++            CraftEventFactory.handleMerchantTradeEvent(imerchant, this, merchantrecipelist); // Tweakkit - handle the trades
+             PacketDataSerializer packetdataserializer = new PacketDataSerializer(Unpooled.buffer());
+ 
+             try {
+diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
+index 48c3c88..524511d 100644
+--- a/src/main/java/net/minecraft/server/EntityVillager.java
++++ b/src/main/java/net/minecraft/server/EntityVillager.java
+@@ -12,8 +12,8 @@ public class EntityVillager extends EntityAgeable implements IMerchant, NPC {
+     private boolean br;
+     private boolean bs;
+     Village village;
+-    private EntityHuman tradingPlayer;
+-    private MerchantRecipeList bu;
++    public EntityHuman tradingPlayer; // Tweakkit private -> public
++    public MerchantRecipeList bu; // Tweakkit private -> public
+     private int bv;
+     private boolean bw;
+     private int riches;
+@@ -273,6 +273,13 @@ public class EntityVillager extends EntityAgeable implements IMerchant, NPC {
+         }
+     }
+ 
++    // Tweakkit start
++    @Override
++    public com.afterkraft.entity.Merchant getBukkitMerchant() {
++        return (org.bukkit.entity.Villager) this.getBukkitEntity();
++    }
++    // Tweakkit end
++
+     public MerchantRecipeList getOffers(EntityHuman entityhuman) {
+         if (this.bu == null) {
+             this.t(1);
+@@ -414,7 +421,8 @@ public class EntityVillager extends EntityAgeable implements IMerchant, NPC {
+         }
+ 
+         for (int i1 = 0; i1 < i && i1 < merchantrecipelist.size(); ++i1) {
+-            this.bu.a((MerchantRecipe) merchantrecipelist.get(i1));
++            // Tweakkit - handle the event and add it as necessary
++            org.bukkit.craftbukkit.event.CraftEventFactory.handleMerchantAddOfferEvent(this, bu, (MerchantRecipe) merchantrecipelist.get(i1));
+         }
+     }
+ 
+diff --git a/src/main/java/net/minecraft/server/IMerchant.java b/src/main/java/net/minecraft/server/IMerchant.java
+new file mode 100644
+index 0000000..078255f
+--- /dev/null
++++ b/src/main/java/net/minecraft/server/IMerchant.java
+@@ -0,0 +1,18 @@
++package net.minecraft.server;
++
++import com.afterkraft.entity.Merchant; // Tweakkit
++
++public interface IMerchant {
++
++    void a_(EntityHuman entityhuman);
++
++    EntityHuman b();
++
++    MerchantRecipeList getOffers(EntityHuman entityhuman);
++
++    void a(MerchantRecipe merchantrecipe);
++
++    void a_(ItemStack itemstack);
++
++    public Merchant getBukkitMerchant(); // Tweakkit
++}
+diff --git a/src/main/java/net/minecraft/server/MerchantRecipe.java b/src/main/java/net/minecraft/server/MerchantRecipe.java
+new file mode 100644
+index 0000000..54f02d1
+--- /dev/null
++++ b/src/main/java/net/minecraft/server/MerchantRecipe.java
+@@ -0,0 +1,130 @@
++package net.minecraft.server;
++
++// Tweakkit start
++import com.afterkraft.merchant.CraftTradeOffer;
++import com.afterkraft.merchant.TradeOffer;
++// Tweakkit end
++
++public class MerchantRecipe {
++
++    private ItemStack buyingItem1;
++    private ItemStack buyingItem2;
++    private ItemStack sellingItem;
++    // Twweakkit start
++    public int uses; // Tweakkit private -> public
++    public int maxUses; // Tweakkit private -> public
++    public TradeOffer.TradeType type;
++    private CraftTradeOffer bukkitTrade;
++    // Tweakkit end
++
++    public MerchantRecipe(NBTTagCompound nbttagcompound) {
++        this.a(nbttagcompound);
++    }
++
++    public MerchantRecipe(ItemStack itemstack, ItemStack itemstack1, ItemStack itemstack2) {
++        this.buyingItem1 = itemstack;
++        this.buyingItem2 = itemstack1;
++        this.sellingItem = itemstack2;
++        this.maxUses = 7;
++    }
++
++    public MerchantRecipe(ItemStack itemstack, ItemStack itemstack1) {
++        this(itemstack, (ItemStack) null, itemstack1);
++    }
++
++    public MerchantRecipe(ItemStack itemstack, Item item) {
++        this(itemstack, new ItemStack(item));
++    }
++
++    public ItemStack getBuyItem1() {
++        return this.buyingItem1;
++    }
++
++    public ItemStack getBuyItem2() {
++        return this.buyingItem2;
++    }
++
++    public boolean hasSecondItem() {
++        return this.buyingItem2 != null;
++    }
++
++    public ItemStack getBuyItem3() {
++        return this.sellingItem;
++    }
++
++    public boolean a(MerchantRecipe merchantrecipe) {
++        return this.buyingItem1.getItem() == merchantrecipe.buyingItem1.getItem() && this.sellingItem.getItem() == merchantrecipe.sellingItem.getItem() ? this.buyingItem2 == null && merchantrecipe.buyingItem2 == null || this.buyingItem2 != null && merchantrecipe.buyingItem2 != null && this.buyingItem2.getItem() == merchantrecipe.buyingItem2.getItem() : false;
++    }
++
++    public boolean b(MerchantRecipe merchantrecipe) {
++        return this.a(merchantrecipe) && (this.buyingItem1.count < merchantrecipe.buyingItem1.count || this.buyingItem2 != null && this.buyingItem2.count < merchantrecipe.buyingItem2.count);
++    }
++
++    public void f() {
++        ++this.uses;
++    }
++
++    public void a(int i) {
++        this.maxUses += i;
++    }
++
++    public boolean g() {
++        return this.uses >= this.maxUses;
++    }
++
++    // Tweakkit start
++    public CraftTradeOffer getBukkitTrade() {
++        if (this.bukkitTrade == null) {
++            this.bukkitTrade = CraftTradeOffer.asCraftMirror(this);
++        }
++        return this.bukkitTrade;
++    }
++
++    public MerchantRecipe cloneTrade() {
++        MerchantRecipe recipe = new MerchantRecipe(this.buyingItem1.cloneItemStack(), (this.buyingItem2 != null ? this.buyingItem2.cloneItemStack() : null), this.sellingItem.cloneItemStack());
++        if (maxUses != 7) {
++            recipe.maxUses = this.maxUses;
++        }
++        recipe.type = this.type;
++        return recipe;
++    }
++    // Tweakkit end
++
++    public void a(NBTTagCompound nbttagcompound) {
++        NBTTagCompound nbttagcompound1 = nbttagcompound.getCompound("buy");
++
++        this.buyingItem1 = ItemStack.createStack(nbttagcompound1);
++        NBTTagCompound nbttagcompound2 = nbttagcompound.getCompound("sell");
++
++        this.sellingItem = ItemStack.createStack(nbttagcompound2);
++        if (nbttagcompound.hasKeyOfType("buyB", 10)) {
++            this.buyingItem2 = ItemStack.createStack(nbttagcompound.getCompound("buyB"));
++        }
++
++        if (nbttagcompound.hasKeyOfType("uses", 99)) {
++            this.uses = nbttagcompound.getInt("uses");
++        }
++
++        if (nbttagcompound.hasKeyOfType("maxUses", 99)) {
++            this.maxUses = nbttagcompound.getInt("maxUses");
++        } else {
++            this.maxUses = 7;
++        }
++        this.getBukkitTrade().readExtraData(nbttagcompound); // Tweakkit
++    }
++
++    public NBTTagCompound i() {
++        NBTTagCompound nbttagcompound = new NBTTagCompound();
++
++        nbttagcompound.set("buy", this.buyingItem1.save(new NBTTagCompound()));
++        nbttagcompound.set("sell", this.sellingItem.save(new NBTTagCompound()));
++        if (this.buyingItem2 != null) {
++            nbttagcompound.set("buyB", this.buyingItem2.save(new NBTTagCompound()));
++        }
++
++        nbttagcompound.setInt("uses", this.uses);
++        nbttagcompound.setInt("maxUses", this.maxUses);
++        this.getBukkitTrade().setExtraData(nbttagcompound); // Tweakkit
++        return nbttagcompound;
++    }
++}
+diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftVillager.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftVillager.java
+index 398029b..80cb06f 100644
+--- a/src/main/java/org/bukkit/craftbukkit/entity/CraftVillager.java
++++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftVillager.java
+@@ -1,11 +1,28 @@
+ package org.bukkit.craftbukkit.entity;
+ 
++import java.util.ArrayList;
++import java.util.Collections;
++import java.util.List;
++
+ import net.minecraft.server.EntityVillager;
++import net.minecraft.server.MerchantRecipe; // Tweakkit
++import net.minecraft.server.MerchantRecipeList; // Tweakkit
++
+ import org.apache.commons.lang.Validate;
+ import org.bukkit.craftbukkit.CraftServer;
++import org.bukkit.craftbukkit.event.CraftEventFactory;
++
+ import org.bukkit.entity.EntityType;
++import org.bukkit.entity.Player;
+ import org.bukkit.entity.Villager;
+ 
++// Tweakkit start
++import com.afterkraft.event.merchant.MerchantAddOfferEvent;
++import com.afterkraft.event.merchant.MerchantRemoveOfferEvent;
++import com.afterkraft.merchant.CraftTradeOffer;
++import com.afterkraft.merchant.TradeOffer;
++// Tweakkit end
++
+ public class CraftVillager extends CraftAgeable implements Villager {
+     public CraftVillager(CraftServer server, EntityVillager entity) {
+         super(server, entity);
+@@ -33,4 +50,54 @@ public class CraftVillager extends CraftAgeable implements Villager {
+         Validate.notNull(profession);
+         getHandle().setProfession(profession.getId());
+     }
++
++    @Override
++    public boolean setTradingPlayer(Player player) {
++        return getHandle().a(((CraftPlayer) player).getHandle());
++    }
++
++    @Override
++    public Player getTradingPlayer() {
++        return (Player) getHandle().tradingPlayer.getBukkitEntity();
++    }
++
++    @Override
++    public List<TradeOffer> getOffers() {
++        if (getHandle().bu == null) {
++            return Collections.unmodifiableList(new ArrayList<TradeOffer>());
++        }
++        List<TradeOffer> list = new ArrayList<TradeOffer>(getHandle().getOffers(null).size());
++        for (int i = 0; i < getHandle().bu.size() ; i++) {
++            MerchantRecipe recipe = (MerchantRecipe) getHandle().bu.get(i);
++            list.add(recipe.getBukkitTrade());
++        }
++        return Collections.unmodifiableList(list);
++    }
++
++    @Override
++    public void addOffer(TradeOffer offer) {
++        MerchantAddOfferEvent event = CraftEventFactory.callMerchantAddOfferEvent(this, getOffers(), offer);
++        if (!event.isCancelled() && event.getOfferToAdd() != null) {
++            getHandle().bu.add(CraftTradeOffer.asNMSCopy(event.getOfferToAdd()));
++        }
++    }
++
++    @Override
++    public boolean removeOffer(TradeOffer offer) {
++        MerchantRemoveOfferEvent event = CraftEventFactory.callMerchantRemoveOfferEvent(this, getOffers(), offer);
++        if (!event.isCancelled() && event.getOfferToRemove() != null) {
++            if (getHandle() != null && getHandle().bu != null && !getHandle().bu.isEmpty()) {
++                MerchantRecipeList list = getHandle().bu;
++                for (int i = 0; i < list.size(); i++) {
++                    MerchantRecipe recipe = (MerchantRecipe) list.get(i);
++                    TradeOffer trade = recipe.getBukkitTrade();
++                    if (event.getOfferToRemove().equals(trade)) {
++                        list.remove(i);
++                        return true;
++                    }
++                }
++            }
++        }
++        return false;
++    }
+ }
+diff --git a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
+index e3cbb22..8cac10b 100644
+--- a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
++++ b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
+@@ -20,9 +20,12 @@ import net.minecraft.server.EntityPlayer;
+ import net.minecraft.server.EntityPotion;
+ import net.minecraft.server.Explosion;
+ import net.minecraft.server.IInventory;
++import net.minecraft.server.IMerchant; // Tweakkit
+ import net.minecraft.server.InventoryCrafting;
+ import net.minecraft.server.ItemStack;
+ import net.minecraft.server.Items;
++import net.minecraft.server.MerchantRecipe; // Tweakkit
++import net.minecraft.server.MerchantRecipeList; // Tweakkit
+ import net.minecraft.server.MobEffect; // Tweakkit
+ import net.minecraft.server.PacketPlayInCloseWindow;
+ import net.minecraft.server.PacketPlayOutSetSlot;
+@@ -79,6 +82,15 @@ import org.bukkit.inventory.meta.BookMeta;
+ import org.bukkit.potion.PotionEffect; // Tweakkit
+ import org.bukkit.potion.PotionEffectType; // Tweakkit
+ 
++// Tweakkit start
++import com.afterkraft.entity.Merchant;
++import com.afterkraft.event.merchant.MerchantAddOfferEvent;
++import com.afterkraft.event.merchant.MerchantRemoveOfferEvent;
++import com.afterkraft.event.merchant.MerchantTradeEvent;
++import com.afterkraft.merchant.CraftTradeOffer;
++import com.afterkraft.merchant.TradeOffer;
++// Tweakkit end
++
+ public class CraftEventFactory {
+     public static final DamageSource MELTING = CraftDamageSource.copyOf(DamageSource.BURN);
+     public static final DamageSource POISON = CraftDamageSource.copyOf(DamageSource.MAGIC);
+@@ -829,4 +841,50 @@ public class CraftEventFactory {
+         entity.getServer().getPluginManager().callEvent(event);
+         return event;
+     }
++
++    public static MerchantAddOfferEvent callMerchantAddOfferEvent(Merchant merchant, List<TradeOffer> currentList, TradeOffer offer) {
++        MerchantAddOfferEvent event = new MerchantAddOfferEvent(merchant, currentList, offer);
++        merchant.getServer().getPluginManager().callEvent(event);
++        return event;
++    }
++
++    public static MerchantRemoveOfferEvent callMerchantRemoveOfferEvent(Merchant merchant, List<TradeOffer> currentList, TradeOffer offer) {
++        MerchantRemoveOfferEvent event = new MerchantRemoveOfferEvent(merchant, currentList, offer);
++        merchant.getServer().getPluginManager().callEvent(event);
++        return event;
++    }
++
++    public static void handleMerchantAddOfferEvent(IMerchant merchant, MerchantRecipeList list, MerchantRecipe toAdd) {
++        toAdd.type = TradeOffer.TradeType.VANILLA;
++        List<TradeOffer> offersList = new ArrayList<TradeOffer>(list.size());
++        for (Object recipe : list) {
++            if (recipe instanceof MerchantRecipe) {
++                offersList.add(((MerchantRecipe) recipe).getBukkitTrade());
++            }
++        }
++        MerchantAddOfferEvent event = callMerchantAddOfferEvent(merchant.getBukkitMerchant(), offersList, toAdd.getBukkitTrade());
++        if (!event.isCancelled()) {
++            TradeOffer offer = event.getOfferToAdd();
++            toAdd = CraftTradeOffer.asNMSCopy(offer);
++            list.a(toAdd);
++        }
++    }
++
++    @SuppressWarnings("unchecked")
++    public static void handleMerchantTradeEvent(IMerchant merchant, EntityPlayer player, MerchantRecipeList originalRecipes) {
++        List<TradeOffer> offersList = new ArrayList<TradeOffer>(originalRecipes.size());
++        for (Object recipe : originalRecipes) {
++            if (recipe instanceof MerchantRecipe) {
++                offersList.add(((MerchantRecipe) recipe).getBukkitTrade());
++            }
++        }
++        MerchantTradeEvent event = new MerchantTradeEvent(merchant.getBukkitMerchant(), player.getBukkitEntity(), offersList);
++        player.getBukkitEntity().getServer().getPluginManager().callEvent(event);
++        if (!event.getOffers().isEmpty() && event.wereOffersModified()) {
++            originalRecipes.clear();
++            for (TradeOffer offer : event.getOffers()) {
++                originalRecipes.add(CraftTradeOffer.asNMSCopy(offer));
++            }
++        }
++    }
+ }
+-- 
+1.8.5.2 (Apple Git-48)
+
